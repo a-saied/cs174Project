@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 ////// local computer run cmd: java -cp /Users/AhmedS/Downloads/ojdbc6.jar:.: MainApp
-
+////// CSIL computer run cmd: java -cp /fs/student/asaied/
 public class MainApp { 
 
 	/////// JDBC setup ////////
@@ -13,6 +13,9 @@ public class MainApp {
    	static final String DB_URL = "jdbc:oracle:thin:@cloud-34-133.eci.ucsb.edu:1521:XE";
    	static final String USERNAME = "asaied";
 	static final String PASSWORD = "cs174";
+
+	static int transactionID = 0;
+	static int aid = 0; 
 
 	static JPanel login = new JPanel();
 	static JPanel scene = new JPanel();
@@ -45,10 +48,22 @@ public class MainApp {
 			window.invalidate();
 			window.validate();
 		});
-		scene.setLayout( new BoxLayout(scene, BoxLayout.Y_AXIS));
+
+		JButton setDate = new JButton("Set Date");
+		// setDate.addActionListener(e ->{
+
+		// })
+		JButton setRate = new JButton("Set Interest Rate");
+		// setRate.addActionListener(e ->{
+
+		// })
+		scene.setLayout( new GridLayout(0,1, 0, 20));
+		welcome.setHorizontalAlignment(JLabel.CENTER);
 		scene.add(welcome);
 		scene.add(atm);
 		scene.add(teller);
+		scene.add(setDate);
+		scene.add(setRate);
 
 		window.setContentPane(scene);
 		//window.add(scene);
@@ -61,6 +76,7 @@ public class MainApp {
 
 		////// login screen //////
 		JLabel login_text = new JLabel("Enter your unique 4-digit PIN");
+		login_text.setHorizontalAlignment(JLabel.CENTER);
 		JTextField pin_field = new JTextField(3);
 		JButton log = new JButton("Submit");
 		JButton b = new JButton("Back");
@@ -80,7 +96,9 @@ public class MainApp {
 		login.add(b);
 
 		//////atm screen ///////
+		atmScene.setLayout( new GridLayout(0,1, 0, 10));
 		JLabel l2 = new JLabel("Welcome, ATM User! What would you like to do?\n");
+		l2.setHorizontalAlignment(JLabel.CENTER);
 		JButton b1 = new JButton("Deposit");
 		JButton b2 = new JButton("Top Up");
 		JButton b3 = new JButton("Withdraw");
@@ -115,7 +133,9 @@ public class MainApp {
 		atmScene.add(b9);
 
 		//// teller screen
+		tellerScene.setLayout( new GridLayout(0,1, 0, 10));
 		JLabel l3 = new JLabel("Welcome, Bank Teller! What would you like to do?\n");
+		l3.setHorizontalAlignment(JLabel.CENTER);
 		JButton c1 = new JButton("Enter Check Transaction");
 		JButton c2 = new JButton("Generate Monthly Statement");
 		JButton c3 = new JButton("List Closed Accounts");
