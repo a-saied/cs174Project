@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 ////// local computer run cmd: java -cp /Users/AhmedS/Downloads/ojdbc6.jar:.: MainApp
-////// CSIL computer run cmd: java -cp /fs/student/asaied/
+////// CSIL computer run cmd: java -cp /fs/student/asaied/Documents/ojdbc6.jar:.: MainApp
 public class MainApp { 
 
 	/////// JDBC setup ////////
@@ -332,7 +332,7 @@ public class MainApp {
 
 
 	private static void checkTransaction(){
-		// String[] x = {"cid", "cname", "city", "discount"};
+	    /*	// String[] x = {"cid", "cname", "city", "discount"};
 		// getData("SELECT cid, cname, city, discount FROM cs174.Customers", x);
 		String q = "SELECT * FROM Makes M WHERE M.aid = ";
 		String aid = JOptionPane.showInputDialog("Enter AID");
@@ -344,14 +344,14 @@ public class MainApp {
 		if(aid != null && amt != null){
 			//normal query shit done here 
 		}else {
-			JOptionPane.showMessageDialog(null, "Check Transaction Cancelled");
+		JOptionPane.showMessageDialog(null, "Check Transaction Cancelled");
 		}
-
+	    */
 
 
 	}
 	private static void monthlyStatement(){
-		String masterStatement = "";
+	    /*	String masterStatement = "";
 		String customerid = JOptionPane.showInputDialog("Enter Customer TaxID");
 		if(customerid != null){
 			customerid = customerid.trim();
@@ -388,12 +388,12 @@ public class MainApp {
 				JOptionPane.showMessageDialog(null, "WARNING: Insurance limit has been reached");
 			}
 		}
-
+	    */
 	}
-	private static void closedAccounts(){
+	private static void closedAccounts(){/*
 		String q = "SELECT * FROM Accounts A WHERE A.closed = 1;";
 		ArrayList<String> x = getData(q) /// fix get data method  
-
+					     */
 	}
 	private static void getDTER(){
 
