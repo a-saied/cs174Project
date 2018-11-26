@@ -34,7 +34,7 @@ public class JDBC {
             String cid  = rs.getString("cid");
             String cname = rs.getString("cname");
             String city = rs.getString("city");
-            double discount = rs.getDouble("discount");
+            String discount = rs.getString("discount");
 
             //Display values
             System.out.print("cid: " + cid);
