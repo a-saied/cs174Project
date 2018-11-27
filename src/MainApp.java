@@ -13,6 +13,8 @@ public class MainApp {
    	static final String DB_URL = "jdbc:oracle:thin:@cloud-34-133.eci.ucsb.edu:1521:XE";
    	static final String USERNAME = "asaied";
 	static final String PASSWORD = "cs174";
+	static Connection conn = null;
+    static Statement stmt = null;
 
 	static int transactionID = 0;
 	static int aid = 0; 
@@ -236,7 +238,7 @@ public class MainApp {
 	}
 
 	/////// method to grab data from sql database //////
-	private static ArrayList<String> getData(String query, String[] cols){ /// everything will come out a String
+	private static ArrayList<String> getData(String query){ /// everything will come out a String
 		Connection conn = null;
       	Statement stmt = null;
       	ArrayList<String> result = new ArrayList<String>();
@@ -255,6 +257,8 @@ public class MainApp {
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
 	         ResultSet rs = stmt.executeQuery(query);
+	         ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+	         int cols = rsmd.getColumnCount();
 	         //STEP 5: Extract data from result set
 	         while(rs.next()){
 	            //Retrieve by column name
@@ -263,8 +267,8 @@ public class MainApp {
 	            // String city = rs.getString("city");
 	            // double discount = rs.getDouble("discount");
 
-	         	for(int i = 0; i < cols.length; i++){
-	         		result.add(rs.getString(cols[i]));
+	         	for(int i = 0; i < cols; i++){
+	         		result.add(rs.getString(i));
 	         	}
 	            //Display values
 	            // System.out.print("cid: " + cid);
@@ -396,12 +400,35 @@ public class MainApp {
 					     */
 	}
 	private static void getDTER(){
+		//String q = "SELECT C.cid FROM Customers C, Owned_By O WHERE O.cid = C.cid and "
 
 	}
 	private static void customerReport(){
-
+		String master = "";
+		String cid = JOptionPane.showInputDialog("Enter Customer taxID");
+		if(aid != null){
+			//normal query shit done here 
+			String q = "SELECT A.aid, A.closed FROM Accounts A, Owned_By O WHERE O.aid = A.aid and O.taxID = " + cid + ";"; 
+			ArrayList<String> accts = getData(q);
+			if(accts.size() == 0){
+				JOptionPane.showMessageDialog(null, "Customer Not Found, Exiting...");
+			}
+			master += "AID    OPEN(1 = YES, 0 = NO)\n";
+			for(int i = 0; i < accts.size(); i++){
+				master += accts[i];
+				if(i % 2 == 0){
+					master += ",       ";
+				}else{
+					master += "\n"
+				}
+			}
+			JOptionPane.showMessageDialog(null, master);
+		}else {
+			JOptionPane.showMessageDialog(null, "Customer Report Cancelled");
+		}
 	}
 	private static void addInterest(){
+
 
 	}
 	private static void createAcct(){
