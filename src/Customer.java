@@ -1,27 +1,32 @@
-
-
+import java.util.*;
 
 public class Customer {
 	private String name;
 	private String taxID;
 	private String address;
 	private String pin;
-	private Int[] accountIds;
+	private HashMap<String, Account> accounts = new HashMap<>(); 
 
-	public Customer(String name, String taxID, String address, String pin, int ) {
-
+	public Customer(String name, String taxID, String address, String pin, Account a) {
+		this.name = name;
+		this.taxID = taxId;
+		this.address = address;
+		this.pin = pin;
+		accounts.put(a.getAccountId(), a);
 	}
 
-	public boolean VerifyPIN(String PIN) {
-
+	public boolean verifyPIN(String comparedPin) {
+		return (this.pin == comparedPin);
 	}
 
-	public void SetPIN(OldPIN, NewPIN) {
-
+	public void setPIN(String oldPin, String newPin) {
+		if (oldPin == this.pin) {
+			pin = newPin;
+		}
 	}
 
-	public void Purchase(accountID, amount) {
-
+	public void purchase(int accountId, int amount) {
+		accounts.get(accountId).withdraw(amount);
 	}
 
 }
