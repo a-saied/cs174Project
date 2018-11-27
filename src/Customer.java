@@ -1,27 +1,33 @@
 import java.util.*;
+import java.sql.*;
 
 public class Customer {
-	private String name;
-	private String taxID;
-	private String address;
+	String name;
+	String taxID;
+	String address;
 	private String pin;
-	private HashMap<String, Account> accounts = new HashMap<>(); 
+	HashMap<String, Account> accounts = new HashMap<>(); 
 
-	public Customer(String name, String taxID, String address, String pin, Account a) {
-		this.name = name;
-		this.taxID = taxId;
-		this.address = address;
-		this.pin = pin;
-		accounts.put(a.getAccountId(), a);
+	public Customer(String taxID, String name, String address, String pin) {
+		String query = "INSERT INTO CUSTOMERS (taxID, name, address, PIN) VALUES (" + taxID + ", " + name + ", " + address + ", " + pin + ")";
+
+		try {
+			JDBC.statement = JDBC.connection.createStatement();
+			ResultSet nameRS = JDBC.statement.executeQuery(query);
+		} catch (SQLException e) { e.printStackTrace(); }
+
 	}
 
 	public boolean verifyPIN(String comparedPin) {
 		return (this.pin == comparedPin);
 	}
 
-	public void setPIN(String oldPin, String newPin) {
+	public boolean setPIN(String oldPin, String newPin) {
 		if (oldPin == this.pin) {
 			pin = newPin;
+		}
+		else {
+			System.out.println("WRONG PIN");
 		}
 	}
 
