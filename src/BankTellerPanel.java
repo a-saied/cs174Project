@@ -131,8 +131,9 @@ public class BankTellerPanel extends JPanel {
 		//String q = "SELECT C.cid FROM Customers C, Owned_By O WHERE O.cid = C.cid and "
 
 	}
-	/*
+	
 	private static void customerReport(){
+		/*
 		String master = "";
 		String cid = JOptionPane.showInputDialog("Enter Customer taxID");
 		if(aid != null){
@@ -155,8 +156,9 @@ public class BankTellerPanel extends JPanel {
 		}else {
 			JOptionPane.showMessageDialog(null, "Customer Report Cancelled");
 		}
+		*/
 	}
-	*/
+	
 	private static void addInterest(){
 
 
@@ -165,10 +167,19 @@ public class BankTellerPanel extends JPanel {
 
 	}
 	private static void deleteClosed(){
+		String q = "DELETE FROM Accounts A WHERE A.closed = 1";
+		getData(q);
 
+		String q2 = "DELETE FROM Customers C WHERE C.cid NOT IN " +
+				  	"(SELECT C2.cid FROM Customers C2 WHERE NOT EXISTS " +
+				  	"( SELECT C3.cid FROM Customers C3 WHERE NOT EXISTS (SELECT O.cid FROM Owned_By O WHERE O.cid = C3.cid and O.cid = C2.cid))"; 
+
+		getData(q2);
 	}
 	private static void deleteTransactions(){
-
+		//pretty simple, just clear all entries in the Makes table and all transactions are removed :)
+		String q = "DELETE FROM Makes";
+		getData(q);
 	}
 
 }
