@@ -4,6 +4,7 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+////// LINDSEY: java -cp /Users/lnguyent01/Desktop/cs174Project/ojdbc6.jar:.: MainApp
 ////// local computer run cmd: java -cp /Users/AhmedS/Downloads/ojdbc6.jar:.: MainApp
 ////// CSIL computer run cmd: java -cp /fs/student/asaied/Documents/ojdbc6.jar:.: MainApp
 public class MainApp { 
@@ -29,6 +30,39 @@ public class MainApp {
 	static String atmPIN;
 
 	public static void main(String[] args){
+
+		try{
+	         //STEP 2: Register JDBC driver
+	         Class.forName(JDBC_DRIVER);
+
+	         //STEP 3: Open a connection
+	         System.out.println("Connecting to a selected database...");
+	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         System.out.println("Connected database successfully...");
+	         //STEP 4: Execute a query
+	         System.out.println("Creating statement...");
+	         stmt = conn.createStatement();
+	    }catch(SQLException se){
+	         //Handle errors for JDBC
+	         se.printStackTrace();
+	    }catch(Exception e){
+	         //Handle errors for Class.forName
+	         e.printStackTrace();
+	    }/*finally{
+	         //finally block used to close resources
+	         try{
+	            if(stmt!=null)
+	               conn.close();
+	         }catch(SQLException se){
+	         }// do nothing
+	         try{
+	            if(conn!=null)
+	               //conn.close();
+	         }catch(SQLException se){
+	            se.printStackTrace();
+	         }//end finally try
+	    }//end try */
+
 		setupPanels();
 		window = new JFrame();
 		window.setSize(400,400);
@@ -101,8 +135,6 @@ public class MainApp {
 
 	/////// method to grab data from sql database //////
 	private static ArrayList<String> getData(String query){ /// everything will come out a String
-		Connection conn = null;
-      	Statement stmt = null;
       	ArrayList<String> result = new ArrayList<String>();
       	try{
 	         //STEP 2: Register JDBC driver

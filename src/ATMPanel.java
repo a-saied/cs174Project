@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.sql.*;
 import java.util.*;
 
 public class ATMPanel extends JPanel {
@@ -60,7 +59,7 @@ public class ATMPanel extends JPanel {
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
-				atmf.deposit(Double.valueOf(amount_field.getText()));
+				atmf.deposit(Double.valueOf(amount_field.getText()), aid_field.getText());
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();
@@ -81,10 +80,11 @@ public class ATMPanel extends JPanel {
 			panel.add(aid_field);
 			panel.add(btn);
 			panel.add(b10);
-			MainApp.window.setContentPane(panel);
-			MainApp.window.invalidate();
-			MainApp.window.validate();
-
+			btn.addActionListener(e2 -> {
+				MainApp.window.setContentPane(this);
+				MainApp.window.invalidate();
+				MainApp.window.validate();
+			});
 		});
 
 		//Withdraw
@@ -105,7 +105,6 @@ public class ATMPanel extends JPanel {
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
-				atmf.withdraw(Double.valueOf(amount_field.getText()));
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();
@@ -130,7 +129,6 @@ public class ATMPanel extends JPanel {
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
-				atmf.purchase(Double.valueOf(amount_field.getText()));
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();

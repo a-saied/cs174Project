@@ -2,7 +2,11 @@
   <target name="compile">
     <javac srcdir="."
 	   destdir="."
-	   includeantruntime="false" />
+	   includeantruntime="false" >
+      <classpath>
+          <pathelement path="/Users/lnguyent01/Desktop/cs174Project/ojdbc6.jar"/>
+      </classpath>
+    </javac>
   </target>
 
   <target name="clean">
