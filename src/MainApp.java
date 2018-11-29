@@ -38,6 +38,7 @@ public class MainApp {
 	         //STEP 3: Open a connection
 	         System.out.println("Connecting to a selected database...");
 	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         conn.setAutoCommit(true);
 	         System.out.println("Connected database successfully...");
 	         //STEP 4: Execute a query
 	         System.out.println("Creating statement...");
@@ -147,7 +148,8 @@ public class MainApp {
 	         
 	         //STEP 4: Execute a query
 	         System.out.println("Creating statement...");
-	         stmt = conn.createStatement();
+	         stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                   ResultSet.CONCUR_UPDATABLE);
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
 	         ResultSet rs = stmt.executeQuery(query);

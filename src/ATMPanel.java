@@ -44,15 +44,15 @@ public class ATMPanel extends JPanel {
 		//Desposit
 		b1.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to deposit.");
+			JLabel label = new JLabel("Enter amount to deposit. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Checking/Savings Account ID to deposit to.");
-			JTextField aid_field = new JTextField(3);
+			JTextField aid_field = new JTextField(5);
 			JButton btn = new JButton("Deposit");
-			panel.add(label); 
-			panel.add(amount_field); 
 			panel.add(label2);
 			panel.add(aid_field);
+			panel.add(label); 
+			panel.add(amount_field); 
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
@@ -69,18 +69,22 @@ public class ATMPanel extends JPanel {
 		//Top-Up
 		b2.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to transfer.");
+			JLabel label = new JLabel("Enter amount to transfer. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Pocket Account ID to transfer to:");
-			JTextField aid_field = new JTextField(3);
+			JTextField aid_field = new JTextField(5);
 			JButton btn = new JButton("Transfer");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
+			MainApp.window.setContentPane(panel);
+			MainApp.window.invalidate();
+			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
+				atmf.topUp(Double.valueOf(amount_field.getText()), aid_field.getText());
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();
@@ -90,21 +94,22 @@ public class ATMPanel extends JPanel {
 		//Withdraw
 		b3.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to withdraw.");
+			JLabel label = new JLabel("Enter amount to withdraw. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Checking/Savings Account ID to withdraw from.");
-			JTextField aid_field = new JTextField(3);
+			JTextField aid_field = new JTextField(5);
 			JButton btn = new JButton("Withdraw");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
+				atmf.withdraw(Double.valueOf(amount_field.getText()), aid_field.getText());
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();
@@ -114,21 +119,22 @@ public class ATMPanel extends JPanel {
 		//Purchase
 		b4.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter total purchase.");
+			JLabel label = new JLabel("Enter total purchase. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Pocket Account ID to purchase from.");
-			JTextField aid_field = new JTextField(3);
+			JTextField aid_field = new JTextField(5);
 			JButton btn = new JButton("Enter");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
+				atmf.purchase(Double.valueOf(amount_field.getText()), aid_field.getText());
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();
@@ -138,19 +144,19 @@ public class ATMPanel extends JPanel {
 		//Transfer
 		b5.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to transfer.");
+			JLabel label = new JLabel("Enter amount to transfer. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Account ID to transfer from.");
-			JTextField aid_field2 = new JTextField(3);
+			JTextField aid_field2 = new JTextField(5);
 			JLabel label3 = new JLabel("Enter the Account ID to transfer to.");
-			JTextField aid_field3 = new JTextField(3);
+			JTextField aid_field3 = new JTextField(5);
 			JButton btn = new JButton("Transfer");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field2);
 			panel.add(label3);
 			panel.add(aid_field3);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
@@ -161,38 +167,44 @@ public class ATMPanel extends JPanel {
 		//Collect
 		b6.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to collect.");
+			JLabel label = new JLabel("Enter amount to collect. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Pocket Account ID to collect from.");
-			JTextField aid_field = new JTextField(3);
+			JTextField aid_field = new JTextField(5);
 			JButton btn = new JButton("Collect");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
+			btn.addActionListener(e2 -> {
+				atmf.collect(Double.valueOf(amount_field.getText()), aid_field.getText());
+				MainApp.window.setContentPane(this);
+				MainApp.window.invalidate();
+				MainApp.window.validate();
+			});
 		});
 
 		//Wire
 		b7.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to wire.");
+			JLabel label = new JLabel("Enter amount to wire. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Account ID to transfer from.");
-			JTextField aid_field2 = new JTextField(3);
+			JTextField aid_field2 = new JTextField(5);
 			JLabel label3 = new JLabel("Enter the Account ID to transfer to.");
-			JTextField aid_field3 = new JTextField(3);
+			JTextField aid_field3 = new JTextField(5);
 			JButton btn = new JButton("Transfer");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field2);
 			panel.add(label3);
 			panel.add(aid_field3);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
@@ -203,24 +215,30 @@ public class ATMPanel extends JPanel {
 		//Pay-Friend
 		b8.addActionListener(e -> {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Enter amount to pay your friend.");
+			JLabel label = new JLabel("Enter amount to pay your friend. $");
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Pocket Account ID to pay from.");
-			JTextField aid_field2 = new JTextField(3);
+			JTextField aid_field2 = new JTextField(5);
 			JLabel label3 = new JLabel("Enter the Pocket Account ID to pay to.");
-			JTextField aid_field3 = new JTextField(3);
+			JTextField aid_field3 = new JTextField(5);
 			JButton btn = new JButton("Transfer");
-			panel.add(label);
-			panel.add(amount_field);
 			panel.add(label2);
 			panel.add(aid_field2);
 			panel.add(label3);
 			panel.add(aid_field3);
+			panel.add(label);
+			panel.add(amount_field);
 			panel.add(btn);
 			panel.add(b10);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
+			btn.addActionListener(e2 -> {
+				atmf.payFriend(Double.valueOf(amount_field.getText()), aid_field2.getText(), aid_field3.getText());
+				MainApp.window.setContentPane(this);
+				MainApp.window.invalidate();
+				MainApp.window.validate();
+			});
 		});
 	}
 }
