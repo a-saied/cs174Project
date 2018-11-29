@@ -52,9 +52,30 @@ public class MainApp {
 		});
 
 		JButton setDate = new JButton("Set Date");
-		// setDate.addActionListener(e ->{
-
-		// })
+		setDate.addActionListener(e ->{
+			String  = JOptionPane.showInputDialog("Which account type would you like to change the interest of? \n (1 = Student Checking, 2 = Interest Checking, 3 = Savings, 4 = Pocket\n");
+			if(aid != null){
+				aid = aid.trim();
+				String n = JOptionPane.showInputDialog("What what is the new interest rate?");
+				if(n != null) {
+					String q;
+					if(aid == "1"){
+						q = "SELECT AppInfo A Set A.student = " + n ";";
+					}
+					else if (aid == "2"){
+						q = "SELECT AppInfo A Set A.interest = " + n ";";
+					}
+					else if (aid == "3"){
+						q = "SELECT AppInfo A Set A.savings = " + n ";";
+					}
+					else if (aid == "4"){
+						q = "SELECT AppInfo A Set A.pocket = " + n ";";
+					}
+					getData(q);
+					JOptionPane.showMessageDialog(null, "Interest changed");
+				}
+			}
+		})
 		JButton setRate = new JButton("Set Interest Rate");
 		// setRate.addActionListener(e ->{
 
