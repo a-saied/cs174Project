@@ -160,11 +160,29 @@ public class BankTellerPanel extends JPanel {
 	}
 	
 	private static void addInterest(){
+		//get interest rates 
+		String q = "SELECT A.student, A.interest, A.savings, A.pocket from AppInfo A;"
+		ArrayList<String> interests = getData(q);
+
+		if(interests.size() > 0){
+			/// update student checking 
+			String q2 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[0] + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0;";
+			getData(q2);
+			// interest checking
+			String q3 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[1] + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0;";
+			getData(q3);
+			// savings
+			String q4 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[2] + "), A.interestAdded = 1 WHERE A.closed = 0;, A.interestAdded = 0";
+			getData(q4);
+			// pocket
+			String q5 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[3] + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0;";
+			getData(q5);
+		}
 
 
 	}
 	private static void createAcct(){
-
+		
 	}
 	private static void deleteClosed(){
 		String q = "DELETE FROM Accounts A WHERE A.closed = 1";
