@@ -106,8 +106,51 @@ public class ATMFunctions {
 		}
 	}
 
-	public void transfer() {}
+	public void transfer(double amount, String fromAccountID, String toAccountID) {
+		if (checkAccountAccess(fromAccountID)) {
+			if (getAccountType(fromAccountID).equals("Pocket") || getAccountType(toAccountID).equals("Pocket")){
+				System.out.println("You cannot transfer to/from a pocket account.");
+				return;
+			}
+			if (amount > 2000) {
+				System.out.println("You cannot transfer > $2000.");
+				return;
+			}
+			String query = "SELECT COUNT (taxID) FROM Owned_By O, Accounts A1 WHERE A1.aid=" + fromAccountID + " AND O.aid=A1.aid AND O.taxID IN (SELECT taxID FROM Accounts A2 WHERE A2.aid=" + toAccountID+ ")";
+			try {
+				ResultSet rs = MainApp.stmt.executeQuery(query);
+				while (rs.next()) {
+					System.out.println("Num of taxIDs: " + rs.getInt(1));
+					if (rs.getInt(1) < 1) {
+						System.out.println("The account does not exist or you do not have access to this account.");
+						return;
+					}
+				}
+				if (hasEnoughMoney(amount, fromAccountID)) {
+					//subtract from account
+					String subQuery = "UPDATE Accounts A SET A.balance = A.balance-" + amount + " WHERE A.aid=" + fromAccountID;
+					try {
+						int rs1 = MainApp.stmt.executeUpdate(subQuery);
+						System.out.println("Updated1: " + rs1);
+					} catch(SQLException se) { se.printStackTrace(); }
 
+					//add to account
+					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + amount + " WHERE A.aid=" + toAccountID;
+					try {
+						int rs2 = MainApp.stmt.executeUpdate(addQuery);
+						System.out.println("Updated2: " + rs2);
+					} catch(SQLException se) { se.printStackTrace(); }
+				}
+				else {
+					System.out.println("You do not have enough funds to transfer.");
+				}
+
+			} catch(SQLException se) { se.printStackTrace(); }
+		}
+		else {
+			System.out.println("The account does not exist or you do not have access to this account.");
+		}
+	}
 
 	public void collect(double amount, String pocketAccountID) {
 		if (checkAccountAccess(pocketAccountID)) {
@@ -121,7 +164,7 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to linked account
-					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + amount + "WHERE A.aid = (SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID + ")";
+					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + (amount - (amount*.03)) + "WHERE A.aid = (SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID + ")";
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
@@ -140,7 +183,37 @@ public class ATMFunctions {
 		}
 	}
 
-	public void wire() {}
+	//DONE
+	public void wire(double amount, String fromAccountID, String toAccountID) {
+		if (checkAccountAccess(fromAccountID) && checkAccountAccess(toAccountID)) {
+			if (!getAccountType(fromAccountID).equals("Pocket") && !getAccountType(toAccountID).equals("Pocket")) {
+				//subtract from pocket account
+				if (hasEnoughMoney(amount, fromAccountID)) {
+					String subQuery = "UPDATE Accounts A SET A.balance = A.balance-" + amount + " WHERE A.aid=" + fromAccountID;
+					try {
+						int rs1 = MainApp.stmt.executeUpdate(subQuery);
+						System.out.println("Updated1: " + rs1);
+					} catch(SQLException se) { se.printStackTrace(); }
+
+					//add to other account
+					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + (amount - (amount*.02)) + "WHERE A.aid=" + toAccountID;
+					try {
+						int rs2 = MainApp.stmt.executeUpdate(addQuery);
+						System.out.println("Updated2: " + rs2);
+					} catch(SQLException se) { se.printStackTrace(); }
+				}
+				else {
+					System.out.println("You do not have enough money to wire.");
+				}
+			}
+			else {
+				System.out.println("You cannot wire to/from a pocket account.");
+			}
+		}
+		else {
+			System.out.println("The account does not exist or you do not have access to this account.");
+		}
+	}
 
 	//DONE
 	public void payFriend(double amount, String fromPocketID, String toPocketID) {

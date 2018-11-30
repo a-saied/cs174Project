@@ -162,6 +162,12 @@ public class ATMPanel extends JPanel {
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
+			btn.addActionListener(e2 -> {
+				atmf.transfer(Double.valueOf(amount_field.getText()), aid_field2.getText(), aid_field3.getText());
+				MainApp.window.setContentPane(this);
+				MainApp.window.invalidate();
+				MainApp.window.validate();
+			});
 		});
 
 		//Collect
@@ -210,6 +216,12 @@ public class ATMPanel extends JPanel {
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
+			btn.addActionListener(e2 -> {
+				atmf.wire(Double.valueOf(amount_field.getText()), aid_field2.getText(), aid_field3.getText());
+				MainApp.window.setContentPane(this);
+				MainApp.window.invalidate();
+				MainApp.window.validate();
+			});
 		});
 
 		//Pay-Friend
