@@ -4,6 +4,7 @@ import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+////// LINDSEY: java -cp /Users/lnguyent01/Desktop/cs174Project/ojdbc6.jar:.: MainApp
 ////// local computer run cmd: java -cp /Users/AhmedS/Downloads/ojdbc6.jar:.: MainApp
 ////// CSIL computer run cmd: java -cp /fs/student/asaied/Documents/ojdbc6.jar:.: MainApp
 public class MainApp { 
@@ -26,9 +27,43 @@ public class MainApp {
 
 	static JFrame window; 
 
-	static String atmPIN;
+ 	static int atmTaxID;
 
 	public static void main(String[] args){
+
+		try{
+	         //STEP 2: Register JDBC driver
+	         Class.forName(JDBC_DRIVER);
+
+	         //STEP 3: Open a connection
+	         System.out.println("Connecting to a selected database...");
+	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         conn.setAutoCommit(true);
+	         System.out.println("Connected database successfully...");
+	         //STEP 4: Execute a query
+	         System.out.println("Creating statement...");
+	         stmt = conn.createStatement();
+	    }catch(SQLException se){
+	         //Handle errors for JDBC
+	         se.printStackTrace();
+	    }catch(Exception e){
+	         //Handle errors for Class.forName
+	         e.printStackTrace();
+	    }/*finally{
+	         //finally block used to close resources
+	         try{
+	            if(stmt!=null)
+	               conn.close();
+	         }catch(SQLException se){
+	         }// do nothing
+	         try{
+	            if(conn!=null)
+	               //conn.close();
+	         }catch(SQLException se){
+	            se.printStackTrace();
+	         }//end finally try
+	    }//end try */
+
 		setupPanels();
 		window = new JFrame();
 		window.setSize(400,400);
@@ -83,10 +118,18 @@ public class MainApp {
 		JButton log = new JButton("Submit");
 		JButton b = new JButton("Back");
 		log.addActionListener(e-> {
-			atmPIN = pin_field.getText();
-			window.setContentPane(atmPanel);
-			window.invalidate();
-			window.validate();
+			if (verifyPin(pin_field.getText())) {
+				System.out.println("TaxID: " + atmTaxID);
+				window.setContentPane(atmPanel);
+				window.invalidate();
+				window.validate();
+			}
+			else {
+				System.out.println("That PIN does not exist.");
+				window.setContentPane(scene);
+				window.invalidate();
+				window.validate();
+			}
 		});
 		b.addActionListener(e -> {
 			window.setContentPane(scene);
@@ -101,8 +144,6 @@ public class MainApp {
 
 	/////// method to grab data from sql database //////
 	private static ArrayList<String> getData(String query){ /// everything will come out a String
-		Connection conn = null;
-      	Statement stmt = null;
       	ArrayList<String> result = new ArrayList<String>();
       	try{
 	         //STEP 2: Register JDBC driver
@@ -115,7 +156,8 @@ public class MainApp {
 	         
 	         //STEP 4: Execute a query
 	         System.out.println("Creating statement...");
-	         stmt = conn.createStatement();
+	         stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                   ResultSet.CONCUR_UPDATABLE);
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
 	         ResultSet rs = stmt.executeQuery(query);
@@ -165,4 +207,18 @@ public class MainApp {
 	    }
 	    return result;
 	} 
+
+	public static boolean verifyPin(String pinToCheck) {
+		String query = "SELECT taxID FROM Customers C WHERE C.pin=" + pinToCheck;
+		try  {
+			ResultSet rs = MainApp.stmt.executeQuery(query);
+			while (rs.next()) {
+				atmTaxID = rs.getInt("taxid");
+				return true;
+			}
+		} catch(SQLException se) { se.printStackTrace(); }
+		return false;
+	}
+
+
 }
