@@ -231,6 +231,7 @@ public class BankTellerPanel extends JPanel {
 			}
 		}
 
+
 		//if we're dealing with a pocket account so we have to find the linked bank account 
 		else if(type == "4" && balance != null){
 			String cnt = JOptionPane.showInputDialog("How many owners are on this account?");
@@ -254,7 +255,14 @@ public class BankTellerPanel extends JPanel {
 				}	
 			}
 			String assoc = JOptionPane.showInputDialog("Type aid for linked account");
-			String sol = getData("SELECT Count(*) FROM Owned_By O, Accounts A where A.type <> 'Pocket' and A.aid = " + assoc + " and A.aid = O.aid and O.taxID = ")
+			String sol = getData("SELECT Count(*) FROM Owned_By O, Accounts A, Customers C where A.type <> 'Pocket' and A.aid = " + assoc + " and A.aid = O.aid and O.taxID = C.taxID and C.PIN IN (SELECT C.pin from Owned_By P, Customers D where P.aid = " + nextAID[0] + "and D.taxID = P.taxID);");
+			if(Integer.parseInt(sol) > 0){
+				getData("INSERT INTO Pocket (aid, taxID) values (" + nextAID[0] + ", " + assoc + ");");
+			}
+			else {
+				JOptionPane.showMessageDialog(null, "Invalid linked account ID");
+				getData("DELETE FROM Accounts A WHERE A.aid = " + nextAID[0] + ";");
+			}
 
 		}else{
 			JOptionPane.showMessageDialog(null, "Invalid entry");
