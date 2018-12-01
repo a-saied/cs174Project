@@ -27,7 +27,7 @@ public class MainApp {
 
 	static JFrame window; 
 
-	static String atmPIN;
+ 	static int atmTaxID;
 
 	public static void main(String[] args){
 
@@ -118,10 +118,18 @@ public class MainApp {
 		JButton log = new JButton("Submit");
 		JButton b = new JButton("Back");
 		log.addActionListener(e-> {
-			atmPIN = pin_field.getText();
-			window.setContentPane(atmPanel);
-			window.invalidate();
-			window.validate();
+			if (verifyPin(pin_field.getText())) {
+				System.out.println("TaxID: " + atmTaxID);
+				window.setContentPane(atmPanel);
+				window.invalidate();
+				window.validate();
+			}
+			else {
+				System.out.println("That PIN does not exist.");
+				window.setContentPane(scene);
+				window.invalidate();
+				window.validate();
+			}
 		});
 		b.addActionListener(e -> {
 			window.setContentPane(scene);
@@ -199,4 +207,18 @@ public class MainApp {
 	    }
 	    return result;
 	} 
+
+	public static boolean verifyPin(String pinToCheck) {
+		String query = "SELECT taxID FROM Customers C WHERE C.pin=" + pinToCheck;
+		try  {
+			ResultSet rs = MainApp.stmt.executeQuery(query);
+			while (rs.next()) {
+				atmTaxID = rs.getInt("taxid");
+				return true;
+			}
+		} catch(SQLException se) { se.printStackTrace(); }
+		return false;
+	}
+
+
 }

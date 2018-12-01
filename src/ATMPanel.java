@@ -18,14 +18,15 @@ public class ATMPanel extends JPanel {
 		JButton b6 = new JButton("Collect");
 		JButton b7 = new JButton("Wire");
 		JButton b8 = new JButton("Pay-Friend");
-		JButton b9 = new JButton("Back");
-		b9.addActionListener(e -> {
+		JButton b9 = new JButton("Change Pin");
+		JButton b10 = new JButton("Back");
+		b10.addActionListener(e -> {
 			MainApp.window.setContentPane(MainApp.scene);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 		});
-		JButton b10 = new JButton("Back");
-		b10.addActionListener(e -> {
+		JButton b11 = new JButton("Cancel");
+		b11.addActionListener(e -> {
 			MainApp.window.setContentPane(this);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -40,6 +41,7 @@ public class ATMPanel extends JPanel {
 		this.add(b6);
 		this.add(b7);
 		this.add(b8);
+		this.add(b9);
 
 		//Desposit
 		b1.addActionListener(e -> {
@@ -54,7 +56,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label); 
 			panel.add(amount_field); 
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -79,7 +81,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -104,7 +106,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -129,7 +131,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -158,7 +160,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -183,7 +185,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -212,7 +214,7 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
@@ -241,12 +243,37 @@ public class ATMPanel extends JPanel {
 			panel.add(label);
 			panel.add(amount_field);
 			panel.add(btn);
-			panel.add(b10);
+			panel.add(b11);
 			MainApp.window.setContentPane(panel);
 			MainApp.window.invalidate();
 			MainApp.window.validate();
 			btn.addActionListener(e2 -> {
 				atmf.payFriend(Double.valueOf(amount_field.getText()), aid_field2.getText(), aid_field3.getText());
+				MainApp.window.setContentPane(this);
+				MainApp.window.invalidate();
+				MainApp.window.validate();
+			});
+		});
+
+		//Set Pin
+		b9.addActionListener(e -> {
+			JPanel panel = new JPanel();
+			JLabel label1 = new JLabel("Enter your old pin: ");
+			JTextField field1 = new JTextField(4);
+			JLabel label2 = new JLabel("Enter your new pin: ");
+			JTextField field2 = new JTextField(4);
+			JButton btn = new JButton("Change");
+			panel.add(label1);
+			panel.add(field1);
+			panel.add(label2);
+			panel.add(field2);
+			panel.add(btn);
+			panel.add(b11);
+			MainApp.window.setContentPane(panel);
+			MainApp.window.invalidate();
+			MainApp.window.validate();
+			btn.addActionListener(e2 -> {
+				atmf.setPin(field1.getText(), field2.getText());
 				MainApp.window.setContentPane(this);
 				MainApp.window.invalidate();
 				MainApp.window.validate();

@@ -258,11 +258,32 @@ public class ATMFunctions {
 		}
 	}
 
+	public void setPin(String oldPin, String newPin) {
+		//get tax id from old pin
+		String checkQuery = "SELECT taxID FROM Customers C WHERE C.pin=" + oldPin;
+		try {
+			ResultSet rs = MainApp.stmt.executeQuery(checkQuery);
+			if (rs.next()) {
+				if ((rs.getInt("taxid")) == MainApp.atmTaxID) {
+					String updateQuery = "UPDATE Customers SET pin=" + newPin + " WHERE taxid=" + MainApp.atmTaxID;
+					int rs2 = MainApp.stmt.executeUpdate(updateQuery);
+					System.out.println("Updated: " + rs2);
+				}
+				else {
+					System.out.println("The PIN you inputted does not match your account's pin.");
+				}
+			}
+			else {
+				System.out.println("The PIN you inputted does not match your account's pin.");
+			}
+		} catch(SQLException se) { se.printStackTrace(); }
+	}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//Checks if the user is an owner of the account
 	public boolean checkAccountAccess(String accountID) {
-		String query = "SELECT COUNT(taxid) FROM Owned_By OB WHERE OB.aid=" + accountID + " AND OB.taxID=(SELECT taxID FROM Customers C WHERE C.PIN=0000)";//MainApp.atmPIN + ")";
+		String query = "SELECT COUNT(taxid) FROM Owned_By OB WHERE OB.aid=" + accountID + " AND OB.taxID=(SELECT taxID FROM Customers C WHERE C.taxID=" + MainApp.atmTaxID + ")";
 		try {
 			ResultSet count = MainApp.stmt.executeQuery(query);
 			while (count.next()) {
