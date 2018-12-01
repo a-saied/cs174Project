@@ -64,8 +64,8 @@ public class BankTellerPanel extends JPanel {
 	}
 
 	private static void checkTransaction(){
-	    /*	// String[] x = {"cid", "cname", "city", "discount"};
-		// getData("SELECT cid, cname, city, discount FROM cs174.Customers", x);
+	   	String[] x = {"cid", "cname", "city", "discount"};
+		getData("SELECT cid, cname, city, discount FROM cs174.Customers");
 		String q = "SELECT * FROM Makes M WHERE M.aid = ";
 		String aid = JOptionPane.showInputDialog("Enter AID");
 		String amt = null;
@@ -78,10 +78,10 @@ public class BankTellerPanel extends JPanel {
 		}else {
 		JOptionPane.showMessageDialog(null, "Check Transaction Cancelled");
 		}
-	    */
-
-
+	    
 	}
+
+
 	private static void monthlyStatement(){
 	    /*	String masterStatement = "";
 		String customerid = JOptionPane.showInputDialog("Enter Customer TaxID");
@@ -122,18 +122,26 @@ public class BankTellerPanel extends JPanel {
 		}
 	    */
 	}
-	private static void closedAccounts(){/*
+
+
+	private static void closedAccounts(){
+		String master = ""; 
 		String q = "SELECT * FROM Accounts A WHERE A.closed = 1;";
 		ArrayList<String> x = getData(q) /// fix get data method  
-					     */
+		for(int i = 0; i < x.size(); x++){
+			if(i > 0)
+		}
+					
 	}
+
+
 	private static void getDTER(){
 		//String q = "SELECT C.cid FROM Customers C, Owned_By O WHERE O.cid = C.cid and "
 
 	}
+
 	
 	private static void customerReport(){
-		/*
 		String master = "";
 		String cid = JOptionPane.showInputDialog("Enter Customer taxID");
 		if(aid != null){
@@ -156,8 +164,9 @@ public class BankTellerPanel extends JPanel {
 		}else {
 			JOptionPane.showMessageDialog(null, "Customer Report Cancelled");
 		}
-		*/
+		
 	}
+
 	
 	private static void addInterest(){
 		//get interest rates 
@@ -180,10 +189,79 @@ public class BankTellerPanel extends JPanel {
 		}
 
 
+
 	}
+
+
 	private static void createAcct(){
-		
+		String balance = JOptionPane.showInputDialog("What is the initial balance of this account \n(please use decimals if not full dollar amount e.g. $100.000)");
+		balance = balance.trim();
+		String type = JOptionPane.showInputDialog("What type of account is this?\n Type 1 for Student Checking\n Type 2 for Interest Checking\n Type 3 for Savings\n Type 4 for Pocket");
+		type = type.trim();
+		ArrayList<string> nextAID = getData("Select A.nextAID from AppInfo A");
+
+		getData("UPDATE AppInfo A SET A.nextAID = A.nextAID + 1"); 
+		if(type != "4" && balance != null){
+			String cnt = JOptionPane.showInputDialog("How many owners are on this account?");
+			if(cnt != nul){
+				JOptionPane.showMessageDialog(null, "Thank you now please enter the information on these customers. \n Start with the primary owner.");
+			}
+			switch(type){
+				case "1" : 
+					type = "Student-Checking";
+				case "2" :
+					type = "Interest-Checking";
+				case "3" :
+					type = "Savings";
+			}
+			cnt = cnt.trim();
+			int count = Integer.parseInt(cnt);
+			for(int i = 0; i < count; i++){
+				String x = inputCustomerData(nextAID[0]);
+				if(i == 0 && x != ""){
+					getData("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID[0] + ", " +
+						balance + ", 0, " + type +", 0, 0, " + x + ");");
+				}
+				if(x != ""){
+					getData("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID[0] + ", " + x + ");");
+				}
+				if(x == ""){
+					i--;
+				}			
+			}
+		}
+
+		//if we're dealing with a pocket account so we have to find the linked bank account 
+		else if(type == "4" && balance != null){
+			String cnt = JOptionPane.showInputDialog("How many owners are on this account?");
+			if(cnt != nul){
+				JOptionPane.showMessageDialog(null, "Thank you now please enter the information on these customers. \n Start with the primary owner.");
+			
+				cnt = cnt.trim();
+				int count = Integer.parseInt(cnt);
+				for(int i = 0; i < count; i++){
+					String x = inputCustomerData(nextAID[0]);
+					if(i == 0 && x != ""){
+						getData("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID[0] + ", " +
+							balance + ", 0, Pocket, 0, 0, " + x + ");");
+					}
+					if(x != ""){
+						getData("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID[0] + ", " + x + ");");
+					}
+					if(x == ""){
+						i--;
+					}		
+				}	
+			}
+			String assoc = JOptionPane.showInputDialog("Type aid for linked account");
+			String sol = getData("SELECT Count(*) FROM Owned_By O, Accounts A where A.type <> 'Pocket' and A.aid = " + assoc + " and A.aid = O.aid and O.taxID = ")
+
+		}else{
+			JOptionPane.showMessageDialog(null, "Invalid entry");
+		}
 	}
+
+
 	private static void deleteClosed(){
 		String q = "DELETE FROM Accounts A WHERE A.closed = 1";
 		getData(q);
@@ -194,10 +272,46 @@ public class BankTellerPanel extends JPanel {
 
 		getData(q2);
 	}
+
+
 	private static void deleteTransactions(){
 		//pretty simple, just clear all entries in the Makes table and all transactions are removed :)
 		String q = "DELETE FROM Makes";
 		getData(q);
 	}
+
+
+	private static String inputCustomerData(int aid){
+		String pin = JOptionPane.showInputDialog("Enter customer PIN.\n If the PIN doesn't exist we will create a customer with that PIN.");
+		pin = pin.trim();
+		ArrayList<String> val = "SELECT COUNT(*) FROM Customer C WHERE C.PIN = " + pin + ";"
+		if(Integer.parseInt(val) <  1 || pin.length != 4){
+			String name = JOPtionPane.showInputDialog("NEW CUSTOMER! Please type the Customer's name:");
+			if(name != null){
+				String addy = JOPtionPane.showInputDialog("Enter address: ");
+				if(addy != null){
+					String taxId = JOPtionPane.showInputDialog("Enter taxID: ");
+					if(taxId != null){
+						getData("INSERT INTO Customers (taxID, name, address, PIN) values (" + taxId + ", " + name + ", " + addy + ", " + pin + ");");
+						return pin;
+					}
+				}
+			}
+		}
+		else if(pin.length == 4 && Integer.parseInt(val) >= 1){
+			return pin;
+		}
+		return "";
+	}
+
+
+
+
+
+
+
+
+
+
 
 }
