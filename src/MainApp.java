@@ -26,6 +26,26 @@ public class MainApp {
 	static String atmPIN;
 
 	public static void main(String[] args){
+		try{
+	         //STEP 2: Register JDBC driver
+	         Class.forName(JDBC_DRIVER);
+
+	         //STEP 3: Open a connection
+	         System.out.println("Connecting to a selected database...");
+	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         conn.setAutoCommit(true);
+	         System.out.println("Connected database successfully...");
+	         //STEP 4: Execute a query
+	         System.out.println("Creating statement...");
+	         stmt = conn.createStatement();
+	    }catch(SQLException se){
+	         //Handle errors for JDBC
+	         se.printStackTrace();
+	    }catch(Exception e){
+	         //Handle errors for Class.forName
+	         e.printStackTrace();
+	    }
+
 		setupPanels();
 		window = new JFrame();
 		window.setSize(400,400);

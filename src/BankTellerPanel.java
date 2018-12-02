@@ -75,8 +75,7 @@ public class BankTellerPanel extends JPanel {
 
 
 	private static void checkTransaction(){
-		getData("SELECT cid, cname, city, discount FROM cs174.Customers");
-		String q = "SELECT A.today, A.transid FROM AppInfo A;";
+		String q = "SELECT A.today, A.transid FROM AppInfo A";
 		ArrayList<String> r = getData(q);
 		q = r.get(0);
 		String p = r.get(0);
@@ -87,11 +86,16 @@ public class BankTellerPanel extends JPanel {
 		}
 
 		if(aid != null && amt != null){
-			String x = "UPDATE Accounts A SET A.balance = " + amt + " WHERE A.aid = " + aid + ";";
-			getData(x);
-			String z = "INSERT INTO Makes (aid, transactionid, when, amount) values (" + aid + ", " + p + ", " + q +  ", " + amt + ");";
-			getData(z);
+			String x = "UPDATE Accounts A SET A.balance = A.balance + '" + amt + "' WHERE A.aid = '" + aid + "'";
 
+			try{
+				boolean v = MainApp.stmt.execute(x);
+			}catch(SQLException se){
+				se.printStackTrace();
+			}
+			String z = "INSERT INTO Makes (aid, transactionid, when, amount) values (" + aid + ", " + p + ", " + q +  ", " + amt + ")";
+			simpleExec(z);
+			JOptionPane.showMessageDialog(null, "Transaction completed");
 
 		}else {
 			JOptionPane.showMessageDialog(null, "Check Transaction Cancelled");
@@ -106,7 +110,7 @@ public class BankTellerPanel extends JPanel {
 		if(customerid != null){
 			customerid = customerid.trim();
 			masterStatement += "Customer ID: " + customerid + "\n";
-			String cust_accts_query = "SELECT O.aid from Owned_By O where O.taxID = " + customerid + ";";
+			String cust_accts_query = "SELECT O.aid from Owned_By O where O.taxID = " + customerid;
 			ArrayList<String> customer_accts_aids = getData(cust_accts_query);
 			String transaction_query = null;
 			ArrayList<String> trans = null;
@@ -115,7 +119,7 @@ public class BankTellerPanel extends JPanel {
 
 			for(int i=0; i < customer_accts_aids.size(); i++){
 				masterStatement += "Account aid: " + customer_accts_aids.get(i) + "\n";
-				cust_query = "SELECT C.name, C.address FROM Customers C, Owned_By O WHERE C.taxID = O.taxID and O.aid = " + customer_accts_aids.get(i) +";";
+				cust_query = "SELECT C.name, C.address FROM Customers C, Owned_By O WHERE C.taxID = O.taxID and O.aid = " + customer_accts_aids.get(i);
 				custos =  getData(cust_query);
 				for(int k = 0; k < custos.size(); k++){
 					masterStatement += custos.get(k);
@@ -128,7 +132,7 @@ public class BankTellerPanel extends JPanel {
 				}
 
 				masterStatement += "\n Transactions list \n";
-				transaction_query = "SELECT M.aid, M.when, M.amount FROM Makes M where M.aid = " + customer_accts_aids.get(i) + ";";
+				transaction_query = "SELECT M.aid, M.when, M.amount FROM Makes M where M.aid = " + customer_accts_aids.get(i);
 				trans = getData(transaction_query);
 				for(int j = 0; j < trans.size(); j++){
 					masterStatement += trans.get(j);
@@ -140,7 +144,7 @@ public class BankTellerPanel extends JPanel {
 				}
 
 
-				transaction_query = "SELECT A.balance, SUM(M.amount) FROM Makes M, Accounts A WHERE A.aid = M.aid and M.aid = " + customer_accts_aids.get(i) + ";";
+				transaction_query = "SELECT A.balance, SUM(M.amount) FROM Makes M, Accounts A WHERE A.aid = M.aid and M.aid = " + customer_accts_aids.get(i);
 				trans = getData(transaction_query);
 				int init = Integer.parseInt(trans.get(0)) - Integer.parseInt(trans.get(1));
 				masterStatement += "Initial Balance: " + init + "\n";
@@ -149,7 +153,7 @@ public class BankTellerPanel extends JPanel {
 				//get initial and final(current) amt 
 			}
 
-			String primary = "SELECT A.balance from Account A where A.primaryID = " + customerid + ";";
+			String primary = "SELECT A.balance from Account A where A.primaryID = " + customerid;
 			double lump_sum = 0.0;
 			ArrayList<String> values = getData(primary);
 			for(int a = 0; a < values.size(); a++){
@@ -165,7 +169,7 @@ public class BankTellerPanel extends JPanel {
 
 	private static void closedAccounts(){
 		String master = ""; 
-		String q = "SELECT A.aid, A.balance, A.type FROM Accounts A WHERE A.closed = 1;";
+		String q = "SELECT A.aid, A.balance, A.type FROM Accounts A WHERE A.closed = 1";
 		ArrayList<String> x = getData(q); /// fix get data method 
 		if(x.size() > 0){ 
 			for(int i = 0; i < x.size(); i++){
@@ -239,22 +243,29 @@ public class BankTellerPanel extends JPanel {
 	
 	private static void addInterest(){
 		//get interest rates 
-		String q = "SELECT A.student, A.interest, A.savings, A.pocket from AppInfo A;";
+		String q = "SELECT A.student, A.interest, A.savings, A.pocket from AppInfo A";
 		ArrayList<String> interests = getData(q);
+		System.out.println(interests.get(1));
 
 		if(interests.size() > 0){
-			/// update student checking 
-			String q2 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(0) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = 'Student-Checking';";
-			getData(q2);
-			// interest checking
-			String q3 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(1) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = 'Interest-Checking';";
-			getData(q3);
-			// savings
-			String q4 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(2) + "), A.interestAdded = 1 WHERE A.closed = 0;, A.interestAdded = 0, A.type = 'Savings';";
-			getData(q4);
-			// pocket
-			String q5 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(3) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = 'Pocket';";
-			getData(q5);
+			// // update student checking 
+			// * " + interests.get(0) + ",
+			String q2 = "UPDATE Accounts SET balance = balance + avgBalance, interestAdded = 1 WHERE closed = 0, interestAdded = 0, type = \"Student-Checking\"";
+			try{
+				boolean r = MainApp.stmt.execute(q2);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			// // interest checking
+			// String q3 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(1) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = \'Interest-Checking\'";
+			// simpleExec(q3);
+			// // savings
+			// String q4 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(2) + "), A.interestAdded = 1 WHERE A.closed = 0;, A.interestAdded = 0, A.type = \'Savings\'";
+			// simpleExec(q4);
+			// // pocket
+			// String q5 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(3) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = \'Pocket\'";
+			// simpleExec(q5);
 		}
 
 
@@ -338,23 +349,43 @@ public class BankTellerPanel extends JPanel {
 		}
 	}
 
-
+	// DONE
 	private static void deleteClosed(){
 		String q = "DELETE FROM Accounts A WHERE A.closed = 1";
-		getData(q);
+		try{
+			boolean res = MainApp.stmt.execute(q);
 
-		String q2 = "DELETE FROM Customers C WHERE C.cid NOT IN " +
-				  	"(SELECT C2.cid FROM Customers C2 WHERE NOT EXISTS " +
-				  	"( SELECT C3.cid FROM Customers C3 WHERE NOT EXISTS (SELECT O.cid FROM Owned_By O WHERE O.cid = C3.cid and O.cid = C2.cid))"; 
+			System.out.println("Accounts closed");
+		}catch(SQLException se){
+			se.printStackTrace();
+		}
 
-		getData(q2);
+		String q2 = "DELETE FROM Customers C WHERE C.taxID NOT IN " + "(SELECT C2.taxID FROM Customers C2 WHERE NOT EXISTS " + "( SELECT C3.taxID FROM Customers C3 WHERE NOT EXISTS (SELECT O.taxID FROM Owned_By O WHERE O.taxID = C3.taxID and O.taxID = C2.taxID)))";
+
+		try{
+			boolean res = MainApp.stmt.execute(q2);
+
+			System.out.println("Subsequent customers closed");
+		}catch(SQLException se){
+			se.printStackTrace();
+		}
+
 	}
 
-
+	// DONE
 	private static void deleteTransactions(){
 		//pretty simple, just clear all entries in the Makes table and all transactions are removed :)
 		String q = "DELETE FROM Makes";
-		getData(q);
+		try{
+			boolean res = MainApp.stmt.execute(q);
+			//System.out.println("Transactions deleted");
+
+			JOptionPane.showMessageDialog(null, "Transactions deleted.");
+		}
+		catch(SQLException se){
+			se.printStackTrace();
+		}
+		// getData(q);
 	}
 
 
@@ -381,26 +412,26 @@ public class BankTellerPanel extends JPanel {
 		return "";
 	}
  
-
+	///useless lol///
 	private static ArrayList<String> getData(String query){ /// everything will come out a String
 		Connection conn = null;
       	Statement stmt = null;
       	ArrayList<String> result = new ArrayList<String>();
       	try{
 	         //STEP 2: Register JDBC driver
-	         Class.forName(JDBC_DRIVER);
+	         // Class.forName(JDBC_DRIVER);
 
-	         //STEP 3: Open a connection
-	         //System.out.println("Connecting to a selected database...");
-	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-	         // System.out.println("Connected database successfully...");
+	         // //STEP 3: Open a connection
+	         // //System.out.println("Connecting to a selected database...");
+	         // conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         // // System.out.println("Connected database successfully...");
 	         
-	         //STEP 4: Execute a query
-	         // System.out.println("Creating statement...");
-	         stmt = conn.createStatement();
+	         // //STEP 4: Execute a query
+	         // // System.out.println("Creating statement...");
+	         // stmt = conn.createStatement();
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
-	         ResultSet rs = stmt.executeQuery(query);
+	         ResultSet rs = MainApp.stmt.executeQuery(query);
 	         ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
 	         int cols = rsmd.getColumnCount();
 	         //STEP 5: Extract data from result set
@@ -411,7 +442,7 @@ public class BankTellerPanel extends JPanel {
 	            // String city = rs.getString("city");
 	            // double discount = rs.getDouble("discount");
 
-	         	for(int i = 0; i < cols; i++){
+	         	for(int i = 1; i < cols; i++){
 	         		result.add(rs.getString(i));
 	         	}
 	            //Display values
@@ -448,6 +479,18 @@ public class BankTellerPanel extends JPanel {
 	    return result;
 	} 
 
+
+	private static void simpleExec(String x){
+		try{
+			boolean res = MainApp.stmt.execute(x);
+			//System.out.println("Transactions deleted");
+
+		}
+		catch(SQLException se){
+			se.printStackTrace();
+		}
+		// getData(q);
+	}
 
 
 
