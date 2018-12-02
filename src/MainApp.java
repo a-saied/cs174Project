@@ -16,9 +16,6 @@ public class MainApp {
 	static Connection conn = null;
     static Statement stmt = null;
 
-	static int transactionID = 0;
-	static int aid = 0; 
-
 	static JPanel login = new JPanel();
 	static JPanel scene = new JPanel();
 	static JPanel atmPanel = new ATMPanel();
@@ -53,33 +50,33 @@ public class MainApp {
 
 		JButton setDate = new JButton("Set Date");
 		setDate.addActionListener(e ->{
-			String  = JOptionPane.showInputDialog("Which account type would you like to change the interest of? \n (1 = Student Checking, 2 = Interest Checking, 3 = Savings, 4 = Pocket\n");
+			System.out.println("date changed");
+		});
+		JButton setRate = new JButton("Set Interest Rate");
+		setRate.addActionListener(e ->{
+			String aid = JOptionPane.showInputDialog("Which account type would you like to change the interest of? \n (1 = Student Checking, 2 = Interest Checking, 3 = Savings, 4 = Pocket\n");
 			if(aid != null){
 				aid = aid.trim();
 				String n = JOptionPane.showInputDialog("What what is the new interest rate?");
 				if(n != null) {
-					String q;
+					String q = null;
 					if(aid == "1"){
-						q = "SELECT AppInfo A Set A.student = " + n ";";
+						q = "UPDATE AppInfo A Set A.student = " + n + ";";
 					}
 					else if (aid == "2"){
-						q = "SELECT AppInfo A Set A.interest = " + n ";";
+						q = "UPDATE AppInfo A Set A.interest = " + n + ";";
 					}
 					else if (aid == "3"){
-						q = "SELECT AppInfo A Set A.savings = " + n ";";
+						q = "UPDATE AppInfo A Set A.savings = " + n + ";";
 					}
 					else if (aid == "4"){
-						q = "SELECT AppInfo A Set A.pocket = " + n ";";
+						q = "UPDATE AppInfo A Set A.pocket = " + n + ";";
 					}
 					getData(q);
 					JOptionPane.showMessageDialog(null, "Interest changed");
 				}
 			}
-		})
-		JButton setRate = new JButton("Set Interest Rate");
-		// setRate.addActionListener(e ->{
-
-		// })
+		});
 		scene.setLayout( new GridLayout(0,1, 0, 20));
 		welcome.setHorizontalAlignment(JLabel.CENTER);
 		scene.add(welcome);
@@ -130,12 +127,12 @@ public class MainApp {
 	         Class.forName(JDBC_DRIVER);
 
 	         //STEP 3: Open a connection
-	         System.out.println("Connecting to a selected database...");
+	         //System.out.println("Connecting to a selected database...");
 	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-	         System.out.println("Connected database successfully...");
+	         // System.out.println("Connected database successfully...");
 	         
 	         //STEP 4: Execute a query
-	         System.out.println("Creating statement...");
+	         // System.out.println("Creating statement...");
 	         stmt = conn.createStatement();
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
@@ -180,9 +177,9 @@ public class MainApp {
 	            se.printStackTrace();
 	         }//end finally try
 	    }//end try
-	    System.out.println("Query complete");
+	    // System.out.println("Query complete");
 	    for(int j = 0; j < result.size(); j++){
-	    	System.out.println(result.get(j));
+	    	// System.out.println(result.get(j));
 	    }
 	    return result;
 	} 

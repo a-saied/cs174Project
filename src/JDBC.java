@@ -63,6 +63,6 @@ public class JDBC {
             se.printStackTrace();
          }//end finally try
       }//end try
-      System.out.println("Goodbye!");
+      //System.out.println("Goodbye!");
    }//end main
 }//end JDBCExample

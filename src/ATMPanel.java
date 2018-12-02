@@ -72,12 +72,12 @@ public class ATMPanel extends JPanel{
 	}
 
 	public void deposit(double amount) {
-		System.out.println(amount);
-		try {
-			ResultSet rs = stmt.executeQuery(query);
-		} catch(SQLException se){
-	        se.printStackTrace();
-	    }
+		// System.out.println(amount);
+		// try {
+		// 	ResultSet rs = stmt.executeQuery(query);
+		// } catch(SQLException se){
+	 //        se.printStackTrace();
+	 //    }
 	}
 	public void topUp() {}
 	public void withdraw() {}

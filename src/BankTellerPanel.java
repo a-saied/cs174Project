@@ -1,7 +1,17 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
+import java.util.*;
+import java.sql.*;
 
 public class BankTellerPanel extends JPanel {
+	static final String JDBC_DRIVER = "oracle.jdbc.driver.OracleDriver";  
+   	static final String DB_URL = "jdbc:oracle:thin:@cloud-34-133.eci.ucsb.edu:1521:XE";
+   	static final String USERNAME = "asaied";
+	static final String PASSWORD = "cs174";
+	static Connection conn = null;
+    static Statement stmt = null;
+
 	public BankTellerPanel() {
 		this.setLayout( new GridLayout(0,1, 0, 10));
 		JLabel l3 = new JLabel("Welcome, Bank Teller! What would you like to do?\n");
@@ -47,7 +57,7 @@ public class BankTellerPanel extends JPanel {
 			getDTER();
 		});
 		c5.addActionListener(e -> {
-			//customerReport();
+			customerReport();
 		});
 		c6.addActionListener(e -> {
 			addInterest();
@@ -63,10 +73,13 @@ public class BankTellerPanel extends JPanel {
 		});
 	}
 
+
 	private static void checkTransaction(){
-	   	String[] x = {"cid", "cname", "city", "discount"};
 		getData("SELECT cid, cname, city, discount FROM cs174.Customers");
-		String q = "SELECT * FROM Makes M WHERE M.aid = ";
+		String q = "SELECT A.today, A.transid FROM AppInfo A;";
+		ArrayList<String> r = getData(q);
+		q = r.get(0);
+		String p = r.get(0);
 		String aid = JOptionPane.showInputDialog("Enter AID");
 		String amt = null;
 		if(aid != null){
@@ -74,16 +87,21 @@ public class BankTellerPanel extends JPanel {
 		}
 
 		if(aid != null && amt != null){
-			//normal query shit done here 
+			String x = "UPDATE Accounts A SET A.balance = " + amt + " WHERE A.aid = " + aid + ";";
+			getData(x);
+			String z = "INSERT INTO Makes (aid, transactionid, when, amount) values (" + aid + ", " + p + ", " + q +  ", " + amt + ");";
+			getData(z);
+
+
 		}else {
-		JOptionPane.showMessageDialog(null, "Check Transaction Cancelled");
+			JOptionPane.showMessageDialog(null, "Check Transaction Cancelled");
 		}
 	    
 	}
 
 
 	private static void monthlyStatement(){
-	    /*	String masterStatement = "";
+	    String masterStatement = "";
 		String customerid = JOptionPane.showInputDialog("Enter Customer TaxID");
 		if(customerid != null){
 			customerid = customerid.trim();
@@ -93,72 +111,123 @@ public class BankTellerPanel extends JPanel {
 			String transaction_query = null;
 			ArrayList<String> trans = null;
 			ArrayList<String> custos = null;
+			String cust_query = null;
 
 			for(int i=0; i < customer_accts_aids.size(); i++){
-				masterStatement += "Account aid: " + customer_accts_aids[i] + "\n";
-				cust_query = "SELECT C.name, C.address FROM Customers C, Owned_By O WHERE C.taxID = O.taxID and O.aid = " + customer_accts_aids[i] +";";
+				masterStatement += "Account aid: " + customer_accts_aids.get(i) + "\n";
+				cust_query = "SELECT C.name, C.address FROM Customers C, Owned_By O WHERE C.taxID = O.taxID and O.aid = " + customer_accts_aids.get(i) +";";
 				custos =  getData(cust_query);
 				for(int k = 0; k < custos.size(); k++){
-					masterStatement += custos[k];
-					if(k%2 == 1) masterStatement += "\n";
+					masterStatement += custos.get(k);
+					if(k% 2 == 1) {
+						masterStatement += "\n";
+					}
+					else{
+						masterStatement += ", ";
+					}
 				}
-				transaction_query = "SELECT * FROM Makes M WHERE M.aid = " + customer_accts_aids[i] + ";";
+
+				masterStatement += "\n Transactions list \n";
+				transaction_query = "SELECT M.aid, M.when, M.amount FROM Makes M where M.aid = " + customer_accts_aids.get(i) + ";";
 				trans = getData(transaction_query);
 				for(int j = 0; j < trans.size(); j++){
-					//check if transaction was within the last month. If so, add 
+					masterStatement += trans.get(j);
+					if(j % 3 == 2){
+						masterStatement += "\n";
+					}else {
+						masterStatement += ", "; 
+					}
 				}
+
+
+				transaction_query = "SELECT A.balance, SUM(M.amount) FROM Makes M, Accounts A WHERE A.aid = M.aid and M.aid = " + customer_accts_aids.get(i) + ";";
+				trans = getData(transaction_query);
+				int init = Integer.parseInt(trans.get(0)) - Integer.parseInt(trans.get(1));
+				masterStatement += "Initial Balance: " + init + "\n";
+				masterStatement += "Final Balance: " + trans.get(0) + "\n";
+				System.out.println(masterStatement);
 				//get initial and final(current) amt 
 			}
 
 			String primary = "SELECT A.balance from Account A where A.primaryID = " + customerid + ";";
 			double lump_sum = 0.0;
-			ArrayList<String> values = getData(primary)
+			ArrayList<String> values = getData(primary);
 			for(int a = 0; a < values.size(); a++){
-				lump_sum += Double.parseDouble(values[a]);
+				lump_sum += Double.parseDouble(values.get(a));
 			}
 			if(lump_sum > 100000.00){
 				JOptionPane.showMessageDialog(null, "WARNING: Insurance limit has been reached");
 			}
 		}
-	    */
+	    
 	}
 
 
 	private static void closedAccounts(){
 		String master = ""; 
-		String q = "SELECT * FROM Accounts A WHERE A.closed = 1;";
-		ArrayList<String> x = getData(q) /// fix get data method  
-		for(int i = 0; i < x.size(); x++){
-			if(i > 0)
+		String q = "SELECT A.aid, A.balance, A.type FROM Accounts A WHERE A.closed = 1;";
+		ArrayList<String> x = getData(q); /// fix get data method 
+		if(x.size() > 0){ 
+			for(int i = 0; i < x.size(); i++){
+				if(i % 3 == 0){
+					master += "\n";
+				}
+				else {
+					master += ", ";
+				}
+				master += x.get(i);
+			}
+			JOptionPane.showMessageDialog(null, master);
 		}
+		else{
+			JOptionPane.showMessageDialog(null, "No accounts found");
+		}
+		
 					
 	}
 
 
 	private static void getDTER(){
-		//String q = "SELECT C.cid FROM Customers C, Owned_By O WHERE O.cid = C.cid and "
+		String master = "";
+		String q = "SELECT C.taxID, C.name, C.address FROM Customers C where C.cid in (SELECT O.cid from Owned_By O, Makes M, where O.aid = M.aid group by O.taxID having SUM(M.amount) > 10000";
+		ArrayList<String> x = getData(q);
+		if(x.size() > 0){
+			for(int i = 0; i < x.size(); i++){
+				if(i%3 == 0){
+					master += "\n";
+				}else {
+					master += "   ";
+				}
+				master += x.get(i);
+			}
+			JOptionPane.showMessageDialog(null, master);
+		}
+		else{
+			JOptionPane.showMessageDialog(null, "No customers found");
+		}
 
 	}
 
 	
 	private static void customerReport(){
 		String master = "";
-		String cid = JOptionPane.showInputDialog("Enter Customer taxID");
-		if(aid != null){
+		String cid = JOptionPane.showInputDialog("Enter Customer PIN");
+		if(cid != null){
 			//normal query shit done here 
-			String q = "SELECT A.aid, A.closed FROM Accounts A, Owned_By O WHERE O.aid = A.aid and O.taxID = " + cid + ";"; 
+			String q = "SELECT A.aid, A.closed FROM Accounts A, Owned_By O, Customers C WHERE O.aid = A.aid and O.taxID = C.taxID and C.PIN = " + cid + ";"; 
 			ArrayList<String> accts = getData(q);
 			if(accts.size() == 0){
 				JOptionPane.showMessageDialog(null, "Customer Not Found, Exiting...");
 			}
 			master += "AID    OPEN(1 = YES, 0 = NO)\n";
 			for(int i = 0; i < accts.size(); i++){
-				//master += accts[i];
 				if(i % 2 == 0){
-					master += ",       ";
-				}else{
 					master += "\n";
+				}else{
+					master += ",    ";
 				}
+				master += accts.get(i);
+
 			}
 			JOptionPane.showMessageDialog(null, master);
 		}else {
@@ -170,21 +239,21 @@ public class BankTellerPanel extends JPanel {
 	
 	private static void addInterest(){
 		//get interest rates 
-		String q = "SELECT A.student, A.interest, A.savings, A.pocket from AppInfo A;"
+		String q = "SELECT A.student, A.interest, A.savings, A.pocket from AppInfo A;";
 		ArrayList<String> interests = getData(q);
 
 		if(interests.size() > 0){
 			/// update student checking 
-			String q2 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[0] + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0;";
+			String q2 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(0) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = 'Student-Checking';";
 			getData(q2);
 			// interest checking
-			String q3 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[1] + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0;";
+			String q3 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(1) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = 'Interest-Checking';";
 			getData(q3);
 			// savings
-			String q4 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[2] + "), A.interestAdded = 1 WHERE A.closed = 0;, A.interestAdded = 0";
+			String q4 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(2) + "), A.interestAdded = 1 WHERE A.closed = 0;, A.interestAdded = 0, A.type = 'Savings';";
 			getData(q4);
 			// pocket
-			String q5 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests[3] + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0;";
+			String q5 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(3) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = 'Pocket';";
 			getData(q5);
 		}
 
@@ -198,12 +267,12 @@ public class BankTellerPanel extends JPanel {
 		balance = balance.trim();
 		String type = JOptionPane.showInputDialog("What type of account is this?\n Type 1 for Student Checking\n Type 2 for Interest Checking\n Type 3 for Savings\n Type 4 for Pocket");
 		type = type.trim();
-		ArrayList<string> nextAID = getData("Select A.nextAID from AppInfo A");
+		ArrayList<String> nextAID = getData("Select A.nextAID from AppInfo A");
 
 		getData("UPDATE AppInfo A SET A.nextAID = A.nextAID + 1"); 
 		if(type != "4" && balance != null){
 			String cnt = JOptionPane.showInputDialog("How many owners are on this account?");
-			if(cnt != nul){
+			if(cnt != null){
 				JOptionPane.showMessageDialog(null, "Thank you now please enter the information on these customers. \n Start with the primary owner.");
 			}
 			switch(type){
@@ -217,13 +286,13 @@ public class BankTellerPanel extends JPanel {
 			cnt = cnt.trim();
 			int count = Integer.parseInt(cnt);
 			for(int i = 0; i < count; i++){
-				String x = inputCustomerData(nextAID[0]);
+				String x = inputCustomerData(nextAID.get(0));
 				if(i == 0 && x != ""){
-					getData("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID[0] + ", " +
+					getData("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID.get(0) + ", " +
 						balance + ", 0, " + type +", 0, 0, " + x + ");");
 				}
 				if(x != ""){
-					getData("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID[0] + ", " + x + ");");
+					getData("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID.get(0) + ", " + x + ");");
 				}
 				if(x == ""){
 					i--;
@@ -235,19 +304,19 @@ public class BankTellerPanel extends JPanel {
 		//if we're dealing with a pocket account so we have to find the linked bank account 
 		else if(type == "4" && balance != null){
 			String cnt = JOptionPane.showInputDialog("How many owners are on this account?");
-			if(cnt != nul){
+			if(cnt != null){
 				JOptionPane.showMessageDialog(null, "Thank you now please enter the information on these customers. \n Start with the primary owner.");
 			
 				cnt = cnt.trim();
 				int count = Integer.parseInt(cnt);
 				for(int i = 0; i < count; i++){
-					String x = inputCustomerData(nextAID[0]);
+					String x = inputCustomerData(nextAID.get(0));
 					if(i == 0 && x != ""){
-						getData("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID[0] + ", " +
+						getData("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID.get(0) + ", " +
 							balance + ", 0, Pocket, 0, 0, " + x + ");");
 					}
 					if(x != ""){
-						getData("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID[0] + ", " + x + ");");
+						getData("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID.get(0) + ", " + x + ");");
 					}
 					if(x == ""){
 						i--;
@@ -255,13 +324,13 @@ public class BankTellerPanel extends JPanel {
 				}	
 			}
 			String assoc = JOptionPane.showInputDialog("Type aid for linked account");
-			String sol = getData("SELECT Count(*) FROM Owned_By O, Accounts A, Customers C where A.type <> 'Pocket' and A.aid = " + assoc + " and A.aid = O.aid and O.taxID = C.taxID and C.PIN IN (SELECT C.pin from Owned_By P, Customers D where P.aid = " + nextAID[0] + "and D.taxID = P.taxID);");
-			if(Integer.parseInt(sol) > 0){
-				getData("INSERT INTO Pocket (aid, taxID) values (" + nextAID[0] + ", " + assoc + ");");
+			ArrayList<String> sol = getData("SELECT Count(*) FROM Owned_By O, Accounts A, Customers C where A.type <> 'Pocket' and A.aid = " + assoc + " and A.aid = O.aid and O.taxID = C.taxID and C.PIN IN (SELECT C.pin from Owned_By P, Customers D where P.aid = " + nextAID.get(0) + "and D.taxID = P.taxID);");
+			if(Integer.parseInt(sol.get(0)) > 0){
+				getData("INSERT INTO Pocket (aid, taxID) values (" + nextAID.get(0) + ", " + assoc + ");");
 			}
 			else {
 				JOptionPane.showMessageDialog(null, "Invalid linked account ID");
-				getData("DELETE FROM Accounts A WHERE A.aid = " + nextAID[0] + ";");
+				getData("DELETE FROM Accounts A WHERE A.aid = " + nextAID.get(0) + ";");
 			}
 
 		}else{
@@ -289,16 +358,16 @@ public class BankTellerPanel extends JPanel {
 	}
 
 
-	private static String inputCustomerData(int aid){
+	private static String inputCustomerData(String aid){
 		String pin = JOptionPane.showInputDialog("Enter customer PIN.\n If the PIN doesn't exist we will create a customer with that PIN.");
 		pin = pin.trim();
-		ArrayList<String> val = "SELECT COUNT(*) FROM Customer C WHERE C.PIN = " + pin + ";"
-		if(Integer.parseInt(val) <  1 || pin.length != 4){
-			String name = JOPtionPane.showInputDialog("NEW CUSTOMER! Please type the Customer's name:");
+		ArrayList<String> val = getData("SELECT COUNT(*) FROM Customer C WHERE C.PIN = " + pin + ";");
+		if(Integer.parseInt(val.get(0)) <  1 || pin.length() != 4){
+			String name = JOptionPane.showInputDialog("NEW CUSTOMER! Please type the Customer's name:");
 			if(name != null){
-				String addy = JOPtionPane.showInputDialog("Enter address: ");
+				String addy = JOptionPane.showInputDialog("Enter address: ");
 				if(addy != null){
-					String taxId = JOPtionPane.showInputDialog("Enter taxID: ");
+					String taxId = JOptionPane.showInputDialog("Enter taxID: ");
 					if(taxId != null){
 						getData("INSERT INTO Customers (taxID, name, address, PIN) values (" + taxId + ", " + name + ", " + addy + ", " + pin + ");");
 						return pin;
@@ -306,16 +375,78 @@ public class BankTellerPanel extends JPanel {
 				}
 			}
 		}
-		else if(pin.length == 4 && Integer.parseInt(val) >= 1){
+		else if(pin.length() == 4 && Integer.parseInt(val.get(0)) >= 1){
 			return pin;
 		}
 		return "";
 	}
+ 
 
+	private static ArrayList<String> getData(String query){ /// everything will come out a String
+		Connection conn = null;
+      	Statement stmt = null;
+      	ArrayList<String> result = new ArrayList<String>();
+      	try{
+	         //STEP 2: Register JDBC driver
+	         Class.forName(JDBC_DRIVER);
 
+	         //STEP 3: Open a connection
+	         //System.out.println("Connecting to a selected database...");
+	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         // System.out.println("Connected database successfully...");
+	         
+	         //STEP 4: Execute a query
+	         // System.out.println("Creating statement...");
+	         stmt = conn.createStatement();
 
+	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
+	         ResultSet rs = stmt.executeQuery(query);
+	         ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+	         int cols = rsmd.getColumnCount();
+	         //STEP 5: Extract data from result set
+	         while(rs.next()){
+	            //Retrieve by column name
+	            // String cid  = rs.getString("cid");
+	            // String cname = rs.getString("cname");
+	            // String city = rs.getString("city");
+	            // double discount = rs.getDouble("discount");
 
-
+	         	for(int i = 0; i < cols; i++){
+	         		result.add(rs.getString(i));
+	         	}
+	            //Display values
+	            // System.out.print("cid: " + cid);
+	            // System.out.print(", cname: " + cname);
+	            // System.out.print(", city: " + city);
+	            // System.out.println(", discount: " + discount);
+	         }
+	         rs.close();
+	    }catch(SQLException se){
+	         //Handle errors for JDBC
+	         se.printStackTrace();
+	    }catch(Exception e){
+	         //Handle errors for Class.forName
+	         e.printStackTrace();
+	    }finally{
+	         //finally block used to close resources
+	         try{
+	            if(stmt!=null)
+	               conn.close();
+	         }catch(SQLException se){
+	         }// do nothing
+	         try{
+	            if(conn!=null)
+	               conn.close();
+	         }catch(SQLException se){
+	            se.printStackTrace();
+	         }//end finally try
+	    }//end try
+	    // System.out.println("Query complete");
+	    for(int j = 0; j < result.size(); j++){
+	    	// System.out.println(result.get(j));
+	    }
+	    return result;
+	} 
 
 
 
