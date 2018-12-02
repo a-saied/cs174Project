@@ -245,27 +245,40 @@ public class BankTellerPanel extends JPanel {
 		//get interest rates 
 		String q = "SELECT A.student, A.interest, A.savings, A.pocket from AppInfo A";
 		ArrayList<String> interests = getData(q);
-		System.out.println(interests.get(1));
+		System.out.println(interests.get(3));
 
 		if(interests.size() > 0){
 			// // update student checking 
 			// * " + interests.get(0) + ",
-			String q2 = "UPDATE Accounts SET balance = balance + avgBalance, interestAdded = 1 WHERE closed = 0, interestAdded = 0, type = \"Student-Checking\"";
+			String q2 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(0) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Student-Checking'";
 			try{
 				boolean r = MainApp.stmt.execute(q2);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			// // interest checking
-			// String q3 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(1) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = \'Interest-Checking\'";
-			// simpleExec(q3);
-			// // savings
-			// String q4 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(2) + "), A.interestAdded = 1 WHERE A.closed = 0;, A.interestAdded = 0, A.type = \'Savings\'";
-			// simpleExec(q4);
-			// // pocket
-			// String q5 = "UPDATE Accounts A SET A.balance = A.balance + (A.avgBalance * " + interests.get(3) + "), A.interestAdded = 1 WHERE A.closed = 0, A.interestAdded = 0, A.type = \'Pocket\'";
-			// simpleExec(q5);
+			String q3 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(1) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Interest-Checking'";
+			try{
+				boolean r = MainApp.stmt.execute(q3);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			String q4 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(2) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Savings'";
+			try{
+				boolean r = MainApp.stmt.execute(q4);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			String q5 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(3) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Pocket'";
+			try{
+				boolean r = MainApp.stmt.execute(q5);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			
 		}
 
 
@@ -442,7 +455,7 @@ public class BankTellerPanel extends JPanel {
 	            // String city = rs.getString("city");
 	            // double discount = rs.getDouble("discount");
 
-	         	for(int i = 1; i < cols; i++){
+	         	for(int i = 1; i < cols + 1; i++){
 	         		result.add(rs.getString(i));
 	         	}
 	            //Display values
