@@ -29,6 +29,8 @@ public class MainApp {
 
  	static int atmTaxID;
 
+ 	static JFrame f = new JFrame();
+
 	public static void main(String[] args){
 
 		try{
@@ -125,7 +127,7 @@ public class MainApp {
 				window.validate();
 			}
 			else {
-				System.out.println("That PIN does not exist.");
+				JOptionPane.showMessageDialog(f, "That PIN does not exist.");
 				window.setContentPane(scene);
 				window.invalidate();
 				window.validate();

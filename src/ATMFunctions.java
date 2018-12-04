@@ -1,15 +1,18 @@
 import java.sql.*;
 import java.util.*;
+import javax.swing.*;
+import java.awt.*;
 
 public class ATMFunctions {
 
 	public ATMFunctions() {}
 
+	JFrame f = new JFrame();
 	//DONE
 	public void deposit(double amount, String accountID) {
 		if (checkAccountAccess(accountID)) {
 			if(getAccountType(accountID).equals("Pocket")) {
-				System.out.println("You cannot deposit into a pocket account.");
+				JOptionPane.showMessageDialog(f, "You cannot deposit into a pocket account.");  
 			}
 			else {
 				String updateQuery = "UPDATE Accounts SET balance = balance+" + amount + " WHERE aid=" + accountID;
@@ -21,7 +24,7 @@ public class ATMFunctions {
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f,"You cannot deposit into a pocket account.");  
 		}
 	}
 
@@ -49,24 +52,24 @@ public class ATMFunctions {
 					} catch(SQLException se)  { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough money to top-up.");
+					JOptionPane.showMessageDialog(f, "You do not have enough money to top-up.");
 				}
 			}
 			else {
-				System.out.println("You cannot top-up from a checking or savings account.");
+				JOptionPane.showMessageDialog(f, "You cannot top-up from a checking or savings account.");
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
 	//DONE
 	public void withdraw(double amount, String accountID) {
 		if (checkAccountAccess(accountID)) {
-			System.out.println("Account Type: " + getAccountType(accountID) + ".");
+			JOptionPane.showMessageDialog(f, "Account Type: " + getAccountType(accountID) + ".");
 			if (getAccountType(accountID).equals("Pocket")){
-				System.out.println("Cannot withdraw from a pocket account.");
+				JOptionPane.showMessageDialog(f, "Cannot withdraw from a pocket account.");
 			}
 			else {
 				if (hasEnoughMoney(amount, accountID)) {
@@ -78,12 +81,12 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough money to withdraw.");
+					JOptionPane.showMessageDialog(f, "You do not have enough money to withdraw.");
 				}
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
@@ -101,26 +104,26 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough money to purchase.");
+					JOptionPane.showMessageDialog(f, "You do not have enough money to purchase.");
 				}
 			}
 			else {
-				System.out.println("You cannot purchase from a checking or savings account.");
+				JOptionPane.showMessageDialog(f, "You cannot purchase from a checking or savings account.");
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
 	public void transfer(double amount, String fromAccountID, String toAccountID) {
 		if (checkAccountAccess(fromAccountID)) {
 			if (getAccountType(fromAccountID).equals("Pocket") || getAccountType(toAccountID).equals("Pocket")){
-				System.out.println("You cannot transfer to/from a pocket account.");
+				JOptionPane.showMessageDialog(f, "You cannot transfer to/from a pocket account.");
 				return;
 			}
 			if (amount > 2000) {
-				System.out.println("You cannot transfer > $2000.");
+				JOptionPane.showMessageDialog(f, "You cannot transfer > $2000.");
 				return;
 			}
 			String query = "SELECT COUNT (taxID) FROM Owned_By O, Accounts A1 WHERE A1.aid=" + fromAccountID + " AND O.aid=A1.aid AND O.taxID IN (SELECT taxID FROM Accounts A2 WHERE A2.aid=" + toAccountID+ ")";
@@ -129,7 +132,7 @@ public class ATMFunctions {
 				while (rs.next()) {
 					System.out.println("Num of taxIDs: " + rs.getInt(1));
 					if (rs.getInt(1) < 1) {
-						System.out.println("The account does not exist or you do not have access to this account.");
+						JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 						return;
 					}
 				}
@@ -151,13 +154,13 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough funds to transfer.");
+					JOptionPane.showMessageDialog(f, "You do not have enough funds to transfer.");
 				}
 
 			} catch(SQLException se) { se.printStackTrace(); }
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
@@ -188,15 +191,15 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough funds to collect.");
+					JOptionPane.showMessageDialog(f, "You do not have enough funds to collect.");
 				}
 			}
 			else {
-				System.out.println("You cannot collect from a checking or savings account.");
+				JOptionPane.showMessageDialog(f, "You cannot collect from a checking or savings account.");
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
@@ -222,15 +225,15 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough money to wire.");
+					JOptionPane.showMessageDialog(f, "You do not have enough money to wire.");
 				}
 			}
 			else {
-				System.out.println("You cannot wire to/from a pocket account.");
+				JOptionPane.showMessageDialog(f, "You cannot wire to/from a pocket account.");
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
@@ -242,7 +245,7 @@ public class ATMFunctions {
 				ResultSet rs1 = MainApp.stmt.executeQuery(checkQuery);
 				while (rs1.next()) {
 					if (rs1.getInt(1) < 1) {
-						System.out.println("The friend pocket ID does not exist.");
+						JOptionPane.showMessageDialog(f, "The friend pocket ID does not exist.");
 						return;
 					}
 				}
@@ -267,15 +270,15 @@ public class ATMFunctions {
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
-					System.out.println("You do not have enough funds to pay.");
+					JOptionPane.showMessageDialog(f, "You do not have enough funds to pay.");
 				}
 			}
 			else {
-				System.out.println("You cannot pay to/from a checking or savings account.");
+				JOptionPane.showMessageDialog(f, "You cannot pay to/from a checking or savings account.");
 			}
 		}
 		else {
-			System.out.println("The account does not exist or you do not have access to this account.");
+			JOptionPane.showMessageDialog(f, "The account does not exist or you do not have access to this account.");
 		}
 	}
 
@@ -291,11 +294,11 @@ public class ATMFunctions {
 					System.out.println("Updated: " + rs2);
 				}
 				else {
-					System.out.println("The PIN you inputted does not match your account's pin.");
+					JOptionPane.showMessageDialog(f, "The PIN you inputted does not match your account's pin.");
 				}
 			}
 			else {
-				System.out.println("The PIN you inputted does not match your account's pin.");
+				JOptionPane.showMessageDialog(f, "The PIN you inputted does not match your account's pin.");
 			}
 		} catch(SQLException se) { se.printStackTrace(); }
 	}
