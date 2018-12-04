@@ -19,7 +19,7 @@ public class ATMFunctions {
 				try {
 					int rs = MainApp.stmt.executeUpdate(updateQuery);
 					System.out.println("Updated: " + rs);
-					addTransaction("Deposit",  amount, accountID);
+					addTransactionSingle("Deposit",  amount, accountID);
 				} catch(SQLException se) { se.printStackTrace(); }
 			}
 		}
@@ -40,7 +40,7 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated1: " + rs1);
-						addTransaction("Top-Up", amount, pocketAccountID);
+						//addTransaction("Top-Up", amount, pocketAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					String assQuery = "SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID;
@@ -48,7 +48,8 @@ public class ATMFunctions {
 						int rs2 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated2: " + rs2);
 						ResultSet rs3 = MainApp.stmt.executeQuery(subQuery);
-						addTransaction("Top-Up", amount*-1.0, linkedAccountID);
+						//addTransaction("Top-Up", amount*-1.0, linkedAccountID);
+						addTransactionDouble("Top-Up", amount, linkedAccountID, pocketAccountID);
 					} catch(SQLException se)  { se.printStackTrace(); }
 				}
 				else {
@@ -67,7 +68,6 @@ public class ATMFunctions {
 	//DONE
 	public void withdraw(double amount, String accountID) {
 		if (checkAccountAccess(accountID)) {
-			JOptionPane.showMessageDialog(f, "Account Type: " + getAccountType(accountID) + ".");
 			if (getAccountType(accountID).equals("Pocket")){
 				JOptionPane.showMessageDialog(f, "Cannot withdraw from a pocket account.");
 			}
@@ -77,7 +77,7 @@ public class ATMFunctions {
 					try {
 						int rs = MainApp.stmt.executeUpdate(query);
 						System.out.println("Updated: " + rs);
-						addTransaction("Withdraw", amount*-1.0, accountID);
+						addTransactionSingle("Withdraw", amount, accountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -100,7 +100,7 @@ public class ATMFunctions {
 					try {
 						int rs = MainApp.stmt.executeUpdate(query);
 						System.out.println("Update: " + rs);
-						addTransaction("Purchase", amount*-1.0, pocketAccountID);
+						addTransactionSingle("Purchase", amount, pocketAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -142,7 +142,7 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
-						addTransaction("Transfer", amount*-1.0, fromAccountID);
+						//addTransaction("Transfer", amount*-1.0, fromAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to account
@@ -150,7 +150,8 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
-						addTransaction("Transfer", amount, toAccountID);
+						//addTransaction("Transfer", amount, toAccountID);
+						addTransactionDouble("Transfer", amount, fromAccountID, toAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -173,7 +174,7 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
-						addTransaction("Collect", amount*-1.0, pocketAccountID);
+						//addTransaction("Collect", amount*-1.0, pocketAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to linked account
@@ -187,7 +188,8 @@ public class ATMFunctions {
 						while (rs3.next()) {
 							associatedID = rs3.getInt("associatedID");
 						}
-						addTransaction("Collect", amount, Integer.toString(associatedID));
+						//addTransaction("Collect", amount, Integer.toString(associatedID));
+						addTransactionDouble("Collect", amount, pocketAccountID, Integer.toString(associatedID));
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -213,7 +215,7 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
-						addTransaction("Wire", amount*-1.0, fromAccountID);
+						//addTransaction("Wire", amount*-1.0, fromAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to other account
@@ -221,7 +223,8 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
-						addTransaction("Wire", amount, toAccountID);
+						//addTransaction("Wire", amount, toAccountID);
+						addTransactionDouble("Wire", amount, fromAccountID, toAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -258,7 +261,7 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Udpate: " + rs2);
-						addTransaction("Pay-friend", amount, toPocketID);
+						//addTransaction("Pay-friend", amount, toPocketID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//subtract from my pocket
@@ -266,7 +269,8 @@ public class ATMFunctions {
 					try {
 						int rs3 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Udpate: " + rs3);
-						addTransaction("Pay-friend", amount*-1.0, fromPocketID);
+						//addTransaction("Pay-friend", amount*-1.0, fromPocketID);
+						addTransactionDouble("Pay-Friend", amount, fromPocketID, toPocketID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -388,9 +392,18 @@ public class ATMFunctions {
 		return -1;
 	}
 
-	public void addTransaction(String type, double amount, String accountID) {
+	public void addTransactionSingle(String type, double amount, String accountID) {
 		try {
-			String query = "INSERT INTO Makes (aid, amount, transactionid, when, type) VALUES (" + accountID + ", " + amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-dd-mm')" + ", '" + type + "')";
+			String query = "INSERT INTO Makes (toAid, amount, transactionid, when, type) VALUES (" + accountID + ", " + amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-dd-mm')" + ", '" + type + "')";
+			int rs = MainApp.stmt.executeUpdate(query);
+			System.out.println("added transaction: " + rs);
+			updateTransID();
+		} catch(SQLException se) { se.printStackTrace(); }
+	}
+
+	public void addTransactionDouble(String type, double amount, String fromAccountID, String toAccountID) {
+		try {
+			String query = "INSERT INTO Makes (toAid, fromAid, amount, transactionid, when, type) VALUES (" + toAccountID + ", " + fromAccountID + ", " +  amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-dd-mm')" + ", '" + type + "')";
 			int rs = MainApp.stmt.executeUpdate(query);
 			System.out.println("added transaction: " + rs);
 			updateTransID();
