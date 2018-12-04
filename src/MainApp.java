@@ -22,9 +22,9 @@ public class MainApp {
 	static JPanel tellerPanel = new BankTellerPanel();
 
 	static JFrame window; 
-
+	static ArrayList<String> eom;
 	static String atmPIN;
-
+	static Calendar c;
 	public static void main(String[] args){
 		try{
 	         //STEP 2: Register JDBC driver
@@ -36,7 +36,7 @@ public class MainApp {
 	         conn.setAutoCommit(true);
 	         System.out.println("Connected database successfully...");
 	         //STEP 4: Execute a query
-	         System.out.println("Creating statement...");
+	         //System.out.println("Creating statement...");
 	         stmt = conn.createStatement();
 	    }catch(SQLException se){
 	         //Handle errors for JDBC
@@ -45,7 +45,9 @@ public class MainApp {
 	         //Handle errors for Class.forName
 	         e.printStackTrace();
 	    }
-
+	    System.out.println("DB ready");
+	    String[] f = {"01-31", "02-28", "03-31", "04-30", "05-31", "06-30", "07-31", "08-31", "09-30", "10-31", "11-30", "12-31"};
+	    eom = new ArrayList<String>(Arrays.asList(f));
 		setupPanels();
 		window = new JFrame();
 		window.setSize(400,400);
@@ -70,30 +72,43 @@ public class MainApp {
 
 		JButton setDate = new JButton("Set Date");
 		setDate.addActionListener(e ->{
-			System.out.println("date changed");
+			String dte = JOptionPane.showInputDialog("Type in your new date (YYYY-MM-DD)");
+			if(dte != null){
+				changeDate(dte);
+
+			}
 		});
 		JButton setRate = new JButton("Set Interest Rate");
 		setRate.addActionListener(e ->{
 			String aid = JOptionPane.showInputDialog("Which account type would you like to change the interest of? \n (1 = Student Checking, 2 = Interest Checking, 3 = Savings, 4 = Pocket\n");
 			if(aid != null){
 				aid = aid.trim();
-				String n = JOptionPane.showInputDialog("What what is the new interest rate?");
+				String n = JOptionPane.showInputDialog("What is the new interest rate (Please use decimal notation?");
 				if(n != null) {
 					String q = null;
-					if(aid == "1"){
-						q = "UPDATE AppInfo A Set A.student = " + n + ";";
+					int z = Integer.parseInt(aid);
+					if(z == 1){
+						q = "UPDATE App A Set A.student = " + n;
 					}
-					else if (aid == "2"){
-						q = "UPDATE AppInfo A Set A.interest = " + n + ";";
+					else if (z == 2){
+						q = "UPDATE App A Set A.interest = " + n;
 					}
-					else if (aid == "3"){
-						q = "UPDATE AppInfo A Set A.savings = " + n + ";";
+					else if (z == 3){
+						q = "UPDATE App A Set A.savings = " + n;
 					}
-					else if (aid == "4"){
-						q = "UPDATE AppInfo A Set A.pocket = " + n + ";";
+					else if (z == 4){
+						q = "UPDATE App A Set A.pocket = " + n;
 					}
-					getData(q);
-					JOptionPane.showMessageDialog(null, "Interest changed");
+					if(q != null){
+						try{
+							boolean rs = stmt.execute(q);
+
+						}
+						catch(SQLException s){
+							s.printStackTrace();
+						}
+						JOptionPane.showMessageDialog(null, "Interest changed");
+					}
 				}
 			}
 		});
@@ -111,6 +126,84 @@ public class MainApp {
 		window.setVisible(true);
 	}
 
+	private static void changeDate(String d){
+		java.sql.Date today = new java.sql.Date((long) 1);
+		try{
+			String q = "select today from App";
+
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(q);
+			if(rs.next()){
+				today = rs.getDate(1);
+			}
+		}
+		catch(SQLException e){
+			e.printStackTrace();
+		}
+		String q = "select (to_date('" + d + "', 'YYYY-MM-DD') - to_date('" + today + "', 'YYYY-MM-DD')) dd from dual";
+		int diff = 0;
+		boolean reached = false;
+		try{
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(q);
+			if(rs.next()){
+				reached = true;
+				diff = rs.getInt(1);
+				System.out.println(diff);
+			}
+			if(!reached){
+				JOptionPane.showMessageDialog(null, "Not a proper date");
+			}
+			else{
+				System.out.println("past datediff");
+				for(int i = 0; i < diff; i++){
+					incrementDay();
+				}
+			}
+
+		}
+		catch(SQLException s){
+			s.printStackTrace();
+		}
+	}
+
+	private static void incrementDay(){
+		//java.sql.Date iter = new java.sql.Date((long) (1000 * 60 * 60 * 24));
+		String q = "SELECT today from App";
+		try{
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(q);
+			if(rs.next()){
+				java.sql.Date x = rs.getDate(1);
+				System.out.println(x);
+				
+				String daymos = x.toString().substring(5,10);
+				System.out.println(daymos);
+
+				int ind = eom.indexOf(daymos);
+				int days = Integer.parseInt(daymos.substring(3,5));
+				if(ind < 0){
+					String qu = "UPDATE Accounts SET avgbalance = ((avgbalance * " + (days-1) + ") + balance)/" + days;
+					int z = stmt.executeUpdate(qu);
+					System.out.println(days);
+				}else{
+					String qu = "UPDATE Accounts SET avgbalance = ((avgbalance * " + (days-1) + ") + balance)/" + days;
+					int z = stmt.executeUpdate(qu);
+					addInterest();
+					String q3 = "DELETE FROM Makes";
+					int h = stmt.executeUpdate(q3);
+					System.out.println(q3);
+				}
+
+
+				String p = "UPDATE App SET today = (Select to_date('" + x + "', 'YYYY-MM-DD') + 1 from dual)";
+				int l = stmt.executeUpdate(p);
+			}
+		}
+		catch(SQLException s){
+			s.printStackTrace();
+		}
+	}
 
 	public static void setupPanels(){
 
@@ -139,24 +232,25 @@ public class MainApp {
 
 	/////// method to grab data from sql database //////
 	private static ArrayList<String> getData(String query){ /// everything will come out a String
-		Connection conn = null;
-      	Statement stmt = null;
+		// Connection conn = null;
+  //     	Statement stmt = null;
       	ArrayList<String> result = new ArrayList<String>();
       	try{
 	         //STEP 2: Register JDBC driver
-	         Class.forName(JDBC_DRIVER);
+	         // Class.forName(JDBC_DRIVER);
 
-	         //STEP 3: Open a connection
-	         //System.out.println("Connecting to a selected database...");
-	         conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-	         // System.out.println("Connected database successfully...");
+	         // //STEP 3: Open a connection
+	         // //System.out.println("Connecting to a selected database...");
+	         // conn = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+	         // // System.out.println("Connected database successfully...");
 	         
-	         //STEP 4: Execute a query
-	         // System.out.println("Creating statement...");
-	         stmt = conn.createStatement();
+	         // //STEP 4: Execute a query
+	         // // System.out.println("Creating statement...");
+	         // stmt = conn.createStatement();
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
-	         ResultSet rs = stmt.executeQuery(query);
+      		MainApp.stmt = MainApp.conn.createStatement();
+	         ResultSet rs = MainApp.stmt.executeQuery(query);
 	         ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
 	         int cols = rsmd.getColumnCount();
 	         //STEP 5: Extract data from result set
@@ -167,7 +261,7 @@ public class MainApp {
 	            // String city = rs.getString("city");
 	            // double discount = rs.getDouble("discount");
 
-	         	for(int i = 0; i < cols; i++){
+	         	for(int i = 1; i < cols + 1; i++){
 	         		result.add(rs.getString(i));
 	         	}
 	            //Display values
@@ -184,23 +278,63 @@ public class MainApp {
 	         //Handle errors for Class.forName
 	         e.printStackTrace();
 	    }finally{
-	         //finally block used to close resources
-	         try{
-	            if(stmt!=null)
-	               conn.close();
-	         }catch(SQLException se){
-	         }// do nothing
-	         try{
-	            if(conn!=null)
-	               conn.close();
-	         }catch(SQLException se){
-	            se.printStackTrace();
-	         }//end finally try
+	         // //finally block used to close resources
+	         // try{
+	         //    if(stmt!=null)
+	         //       conn.close();
+	         // }catch(SQLException se){
+	         // }// do nothing
+	         // try{
+	         //    if(conn!=null)
+	         //       conn.close();
+	         // }catch(SQLException se){
+	         //    se.printStackTrace();
+	         // }//end finally try
 	    }//end try
 	    // System.out.println("Query complete");
-	    for(int j = 0; j < result.size(); j++){
-	    	// System.out.println(result.get(j));
-	    }
 	    return result;
 	} 
+
+	public static void addInterest(){
+		//get interest rates 
+		String q = "SELECT A.student, A.interest, A.savings, A.pocket from App A";
+		ArrayList<String> interests = getData(q);
+		System.out.println(interests.get(3));
+
+		if(interests.size() > 0){
+			// // update student checking 
+			// * " + interests.get(0) + ",
+			String q2 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(0) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Student-Checking'";
+			try{
+				boolean r = MainApp.stmt.execute(q2);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			String q3 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(1) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Interest-Checking'";
+			try{
+				boolean r = MainApp.stmt.execute(q3);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			String q4 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(2) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Savings'";
+			try{
+				boolean r = MainApp.stmt.execute(q4);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			String q5 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(3) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Pocket'";
+			try{
+				boolean r = MainApp.stmt.execute(q5);
+			}
+			catch(SQLException se){
+				se.printStackTrace();
+			}
+			
+		}
+	}
+
+
 }

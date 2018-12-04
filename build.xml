@@ -1,8 +1,12 @@
 <project>
   <target name="compile">
     <javac srcdir="."
-	   destdir="."
-	   includeantruntime="false" />
+     destdir="."
+     includeantruntime="false" >
+      <classpath>
+          <pathelement path="/Users/AhmedS/Downloads/ojdbc6.jar:.:"/>
+      </classpath>
+    </javac>
   </target>
 
   <target name="clean">
@@ -12,7 +16,8 @@
   </target>
 
   <target name="run">
-    <java classname="MainApp" classpath="."/>
+    <java classname="MainApp" classpath="/Users/AhmedS/Downloads/ojdbc6.jar:.:" fork ="true"/>
   </target>
+  
   
 </project>
