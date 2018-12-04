@@ -75,7 +75,7 @@ public class ATMPanel extends JPanel {
 			JTextField amount_field = new JTextField(3);
 			JLabel label2 = new JLabel("Enter the Pocket Account ID to transfer to:");
 			JTextField aid_field = new JTextField(5);
-			JButton btn = new JButton("Transfer");
+			JButton btn = new JButton("Top-Up");
 			panel.add(label2);
 			panel.add(aid_field);
 			panel.add(label);
@@ -235,7 +235,7 @@ public class ATMPanel extends JPanel {
 			JTextField aid_field2 = new JTextField(5);
 			JLabel label3 = new JLabel("Enter the Pocket Account ID to pay to.");
 			JTextField aid_field3 = new JTextField(5);
-			JButton btn = new JButton("Transfer");
+			JButton btn = new JButton("Pay Friend");
 			panel.add(label2);
 			panel.add(aid_field2);
 			panel.add(label3);

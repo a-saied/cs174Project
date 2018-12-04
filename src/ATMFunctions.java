@@ -16,6 +16,7 @@ public class ATMFunctions {
 				try {
 					int rs = MainApp.stmt.executeUpdate(updateQuery);
 					System.out.println("Updated: " + rs);
+					addTransaction("Deposit",  amount, accountID);
 				} catch(SQLException se) { se.printStackTrace(); }
 			}
 		}
@@ -36,11 +37,15 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated1: " + rs1);
+						addTransaction("Top-Up", amount, pocketAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
+					String assQuery = "SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID;
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated2: " + rs2);
+						ResultSet rs3 = MainApp.stmt.executeQuery(subQuery);
+						addTransaction("Top-Up", amount*-1.0, linkedAccountID);
 					} catch(SQLException se)  { se.printStackTrace(); }
 				}
 				else {
@@ -69,6 +74,7 @@ public class ATMFunctions {
 					try {
 						int rs = MainApp.stmt.executeUpdate(query);
 						System.out.println("Updated: " + rs);
+						addTransaction("Withdraw", amount*-1.0, accountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -90,7 +96,8 @@ public class ATMFunctions {
 					String query = "UPDATE Accounts A SET A.balance = A.balance-" + amount + " WHERE A.aid=" + pocketAccountID;
 					try {
 						int rs = MainApp.stmt.executeUpdate(query);
-						System.out.println("Udpate: " + rs);
+						System.out.println("Update: " + rs);
+						addTransaction("Purchase", amount*-1.0, pocketAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -132,6 +139,7 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
+						addTransaction("Transfer", amount*-1.0, fromAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to account
@@ -139,6 +147,7 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
+						addTransaction("Transfer", amount, toAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -161,13 +170,21 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
+						addTransaction("Collect", amount*-1.0, pocketAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to linked account
 					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + (amount - (amount*.03)) + "WHERE A.aid = (SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID + ")";
+					String assQuery = "SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID;
+					int associatedID = -1;
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
+						ResultSet rs3 = MainApp.stmt.executeQuery(assQuery);
+						while (rs3.next()) {
+							associatedID = rs3.getInt("associatedID");
+						}
+						addTransaction("Collect", amount, Integer.toString(associatedID));
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -193,6 +210,7 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
+						addTransaction("Wire", amount*-1.0, fromAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to other account
@@ -200,6 +218,7 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
+						addTransaction("Wire", amount, toAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -236,6 +255,7 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Udpate: " + rs2);
+						addTransaction("Pay-friend", amount, toPocketID);
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//subtract from my pocket
@@ -243,6 +263,7 @@ public class ATMFunctions {
 					try {
 						int rs3 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Udpate: " + rs3);
+						addTransaction("Pay-friend", amount*-1.0, fromPocketID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -329,5 +350,47 @@ public class ATMFunctions {
 			}
 		} catch(SQLException se) { se.printStackTrace(); }
 		return -1;
+	}
+
+	public void updateTransID() {
+		String query = "UPDATE App SET transid=transid+1";
+		try  {
+			int rs = MainApp.stmt.executeUpdate(query);
+			System.out.println("updated transid: " + rs);
+		} catch(SQLException se) { se.printStackTrace(); }
+	}
+
+	public java.sql.Date getDate() {
+		try {
+			String query = "SELECT today FROM App";
+			ResultSet rs = MainApp.stmt.executeQuery(query);
+			while (rs.next()) {
+				System.out.println("date: " + rs.getDate("today"));
+				return rs.getDate("today");
+			}
+		} catch(SQLException se) { se.printStackTrace(); }
+		return new java.sql.Date((long) 1);
+	}
+
+	public int getTransactionID() {
+		try  {
+			String transQuery = "SELECT transid FROM App";
+			ResultSet rs1 = MainApp.stmt.executeQuery(transQuery);
+			while (rs1.next()) {
+				System.out.println("transactionid: " + rs1.getInt("transid"));
+				return rs1.getInt("transid");
+			}
+			updateTransID();
+		} catch(SQLException se) { se.printStackTrace(); }
+		return -1;
+	}
+
+	public void addTransaction(String type, double amount, String accountID) {
+		try {
+			String query = "INSERT INTO Makes (aid, amount, transactionid, when, type) VALUES (" + accountID + ", " + amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-dd-mm')" + ", '" + type + "')";
+			int rs = MainApp.stmt.executeUpdate(query);
+			System.out.println("added transaction: " + rs);
+			updateTransID();
+		} catch(SQLException se) { se.printStackTrace(); }
 	}
 }
