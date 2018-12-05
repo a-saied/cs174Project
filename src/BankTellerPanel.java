@@ -296,9 +296,11 @@ public class BankTellerPanel extends JPanel {
 	private static void customerReport(){
 		String master = "";
 		String cid = JOptionPane.showInputDialog("Enter Customer PIN");
+		int pin = Integer.parseInt(cid);
+		pin = pin * 2;
 		if(cid != null){
 			//normal query shit done here 
-			String q = "SELECT A.aid, A.closed FROM Accounts A, Owned_By O, Customers C WHERE O.aid = A.aid and O.taxID = C.taxID and C.PIN = " + cid; 
+			String q = "SELECT A.aid, A.closed FROM Accounts A, Owned_By O, Customers C WHERE O.aid = A.aid and O.taxID = C.taxID and C.PIN = '" + pin + "'"; 
 			ArrayList<String> accts = getData(q);
 			if(accts.size() == 0){
 				JOptionPane.showMessageDialog(null, "Customer Not Found, Exiting...");
@@ -598,9 +600,11 @@ public class BankTellerPanel extends JPanel {
 
 
 	private static String[] inputCustomerData(String aid){
-		String pin = JOptionPane.showInputDialog("Enter customer PIN.\n If the PIN doesn't exist we will create a customer with that PIN.");
+		String pin = JOptionPane.showInputDialog("Enter customer PIN.\n If the PIN doesn't exist we will create a customer with that PIN. \nPlease note that if you are creating a new customer DO NOT \nuse PIN 0000 for security reasons");
 		pin = pin.trim();
-		ArrayList<String> val = getData("SELECT COUNT(*) FROM Customers C WHERE C.PIN = '" + pin + "'");
+		int pin_num = Integer.parseInt(pin);
+		pin_num = pin_num * 2;
+		ArrayList<String> val = getData("SELECT COUNT(*) FROM Customers C WHERE C.PIN = '" + pin_num + "'");
 		if(Integer.parseInt(val.get(0)) <  1 || pin.length() != 4){
 			String name = JOptionPane.showInputDialog("NEW CUSTOMER! Please type the Customer's name:");
 			if(name != null){
@@ -608,7 +612,7 @@ public class BankTellerPanel extends JPanel {
 				if(addy != null){
 					String taxId = JOptionPane.showInputDialog("Enter taxID: ");
 					if(taxId != null){
-						simpleExec("INSERT INTO Customers (taxID, name, address, PIN) values(" + taxId + ", '" + name + "', '" + addy + "', '" + pin + "')");
+						simpleExec("INSERT INTO Customers (taxID, name, address, PIN) values(" + taxId + ", '" + name + "', '" + addy + "', '" + pin_num + "')");
 						String[] ret = {pin, taxId};
 						return ret;
 					}
@@ -618,7 +622,7 @@ public class BankTellerPanel extends JPanel {
 		else if(pin.length() == 4 && Integer.parseInt(val.get(0)) >= 1){
 			String tazID = "";
 			try{
-				String z = "SELECT C.pin, C.taxID from Customers C where C.pin = '" + pin + "'";
+				String z = "SELECT C.pin, C.taxID from Customers C where C.pin = '" + pin_num + "'";
 				ResultSet rs = MainApp.stmt.executeQuery(z);
 				if(rs.next()){
 					pin = rs.getString("PIN");
