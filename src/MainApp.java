@@ -88,16 +88,16 @@ public class MainApp {
 					String q = null;
 					int z = Integer.parseInt(aid);
 					if(z == 1){
-						q = "UPDATE App A Set A.student = " + n;
+						q = "UPDATE App A Set A.student = " + (Double.parseDouble(n)/12);
 					}
 					else if (z == 2){
-						q = "UPDATE App A Set A.interest = " + n;
+						q = "UPDATE App A Set A.interest = " + (Double.parseDouble(n)/12);
 					}
 					else if (z == 3){
-						q = "UPDATE App A Set A.savings = " + n;
+						q = "UPDATE App A Set A.savings = " + (Double.parseDouble(n)/12);
 					}
 					else if (z == 4){
-						q = "UPDATE App A Set A.pocket = " + n;
+						q = "UPDATE App A Set A.pocket = " + (Double.parseDouble(n)/12);
 					}
 					if(q != null){
 						try{
@@ -194,6 +194,9 @@ public class MainApp {
 					int h = stmt.executeUpdate(q3);
 					String q4 = "UPDATE Accounts SET interestAdded = 0";
 					int n = stmt.executeUpdate(q4);
+					String q5 = "UPDATE Pocket Set first = 0";
+					int z2 = stmt.executeUpdate(q5);
+					deleteClosed();
 				}
 
 
@@ -296,11 +299,51 @@ public class MainApp {
 	    return result;
 	} 
 
-	public static void addInterest(){
+	private static void addInterest(){
 		//get interest rates 
-		String q = "SELECT A.student, A.interest, A.savings, A.pocket from App A";
+		String q = "SELECT A.student, A.interest, A.savings, A.pocket, A.transID from App A";
 		ArrayList<String> interests = getData(q);
-		System.out.println(interests.get(3));
+		java.sql.Date d = new java.sql.Date((long) 1);
+		try{
+			//MainApp.stmt = MainApp.conn.createStatement();
+			ResultSet rs = MainApp.stmt.executeQuery("SELECT A.today from App A");
+			if(rs.next()){
+				d = rs.getDate(1);
+			}
+		}catch (SQLException e){
+			e.printStackTrace();
+		}
+
+		ArrayList<String> sChecking = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Student-Checking\' and A.closed = 0 and A.interestAdded = 0");
+		ArrayList<String> iChecking = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Interest-Checking\' and A.closed = 0 and A.interestAdded = 0");
+		ArrayList<String> sav = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Savings\' and A.closed = 0 and A.interestAdded = 0");
+		ArrayList<String> pock = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Pocket\' and A.closed = 0 and A.interestAdded = 0");
+
+		System.out.println("got entries");
+
+		for(int i = 0; i < sChecking.size(); i = i + 2){
+			double fill = (Double.parseDouble(sChecking.get(i + 1)) * Double.parseDouble(interests.get(0)));
+			String quer = "INSERT INTO Makes(toaid, fromaid, when, amount, transactionid, type) values(" + sChecking.get(i) + ", " + sChecking.get(i) + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + fill + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+		for(int i = 0; i < iChecking.size(); i = i + 2){
+			String quer = "INSERT INTO MAKES (toaid, fromaid, when, amount, transactionid, type) values(" + iChecking.get(i) + ", " + iChecking.get(i) + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(iChecking.get(i + 1)) * Double.parseDouble(interests.get(1))) + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+		for(int i = 0; i < sav.size(); i = i + 2){
+			String quer = "INSERT INTO MAKES (toaid, fromaid, when, amount, transactionid, type) values(" + sav.get(i) + ", " + sav.get(i) + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(sav.get(i + 1)) * Double.parseDouble(interests.get(2))) + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+		for(int i = 0; i < pock.size(); i = i + 2){
+			String quer = "INSERT INTO MAKES (toaid, fromaid, when, amount, transactionid, type) values(" + pock.get(i) + ", " + pock.get(i) + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(pock.get(i + 1)) * Double.parseDouble(interests.get(3))) + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+
+		System.out.println(interests.get(4));
 
 		if(interests.size() > 0){
 			// // update student checking 
@@ -335,6 +378,86 @@ public class MainApp {
 			}
 			
 		}
+
+		System.out.println("interests added");
+
+
+
+	}
+
+	private static void deleteClosed(){
+		String q = "DELETE FROM Accounts A WHERE A.closed = 1";
+		try{
+			boolean res = MainApp.stmt.execute(q);
+
+			System.out.println("Accounts closed");
+		}catch(SQLException se){
+			se.printStackTrace();
+		}
+
+		//String q2 = "DELETE FROM Customers C WHERE C.taxID NOT IN " + "(SELECT C2.taxID FROM Customers C2 WHERE NOT EXISTS " + "( SELECT C3.taxID FROM Customers C3 WHERE NOT EXISTS (SELECT O.taxID FROM Owned_By O WHERE O.taxID = C3.taxID and O.taxID = C2.taxID)))";
+		String q3 = "DELETE FROM Customers C WHERE C.taxID NOT IN (SELECT O.taxID from Owned_By O)";
+		try{
+			boolean res = MainApp.stmt.execute(q3);
+
+			System.out.println("Subsequent customers closed");
+		}catch(SQLException se){
+			se.printStackTrace();
+		}
+
+	}
+
+	private static void simpleExec(String x){
+		try{
+			int res = MainApp.stmt.executeUpdate(x);
+			//System.out.println("Transactions deleted");
+
+		}
+		catch(SQLIntegrityConstraintViolationException s){
+			s.printStackTrace();
+			try{
+	            if(MainApp.stmt!=null)
+	               MainApp.conn.close();
+	         }catch(SQLException se){
+	         }// do nothing
+	         try{
+	            if(MainApp.conn!=null)
+	               MainApp.conn.close();
+	         }catch(SQLException se){
+	            se.printStackTrace();
+	         }//end finally try
+			System.exit(0);
+		}
+		catch(SQLException s){
+			s.printStackTrace();
+			try{
+	            if(MainApp.stmt!=null)
+	               MainApp.conn.close();
+	         }catch(SQLException se){
+	         }// do nothing
+	         try{
+	            if(MainApp.conn!=null)
+	               MainApp.conn.close();
+	         }catch(SQLException se){
+	            se.printStackTrace();
+	         }//end finally try
+			System.exit(0);
+
+		}
+		// finally{
+		// 	try{
+	 //            if(MainApp.stmt!=null)
+	 //               MainApp.conn.close();
+	 //         }catch(SQLException se){
+	 //         }// do nothing
+	 //         try{
+	 //            if(MainApp.conn!=null)
+	 //               MainApp.conn.close();
+	 //         }catch(SQLException se){
+	 //            se.printStackTrace();
+	 //         }//end finally try
+		// }
+		// // getData(q);
 	}
 
 

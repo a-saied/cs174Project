@@ -249,13 +249,13 @@ public class BankTellerPanel extends JPanel {
 		ArrayList<String> x = getData(q); /// fix get data method 
 		if(x.size() > 0){ 
 			for(int i = 0; i < x.size(); i++){
-				if(i % 3 == 0){
+				master += x.get(i);
+				if(i % 3 == 2){
 					master += "\n";
 				}
 				else {
 					master += ", ";
 				}
-				master += x.get(i);
 			}
 			JOptionPane.showMessageDialog(null, master);
 		}
@@ -326,9 +326,49 @@ public class BankTellerPanel extends JPanel {
 	//DONE
 	private static void addInterest(){
 		//get interest rates 
-		String q = "SELECT A.student, A.interest, A.savings, A.pocket from App A";
+		String q = "SELECT A.student, A.interest, A.savings, A.pocket, A.transID from App A";
 		ArrayList<String> interests = getData(q);
-		System.out.println(interests.get(3));
+		java.sql.Date d = new java.sql.Date((long) 1);
+		try{
+			//MainApp.stmt = MainApp.conn.createStatement();
+			ResultSet rs = MainApp.stmt.executeQuery("SELECT A.today from App A");
+			if(rs.next()){
+				d = rs.getDate(1);
+			}
+		}catch (SQLException e){
+			e.printStackTrace();
+		}
+
+		ArrayList<String> sChecking = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Student-Checking\' and A.closed = 0 and A.interestAdded = 0");
+		ArrayList<String> iChecking = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Interest-Checking\' and A.closed = 0 and A.interestAdded = 0");
+		ArrayList<String> sav = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Savings\' and A.closed = 0 and A.interestAdded = 0");
+		ArrayList<String> pock = getData("SELECT A.aid, A.avgBalance from Accounts A where A.type = \'Pocket\' and A.closed = 0 and A.interestAdded = 0");
+
+		System.out.println("got entries");
+
+		for(int i = 0; i < sChecking.size(); i = i + 2){
+			double fill = (Double.parseDouble(sChecking.get(i + 1)) * Double.parseDouble(interests.get(0)));
+			String quer = "INSERT INTO Makes(toaid, fromaid, when, amount, transactionid, type) values(" + sChecking.get(i) + ", " + sChecking.get(i) + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + fill + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+		for(int i = 0; i < iChecking.size(); i = i + 2){
+			String quer = "INSERT INTO MAKES (toaid, fromaid, when, amount, transactionid, type) values(" + iChecking.get(i) + ", " + iChecking.get(i) + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(iChecking.get(i + 1)) * Double.parseDouble(interests.get(1))) + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+		for(int i = 0; i < sav.size(); i = i + 2){
+			String quer = "INSERT INTO MAKES (toaid, fromaid, when, amount, transactionid, type) values(" + sav.get(i) + ", " + sav.get(i) + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(sav.get(i + 1)) * Double.parseDouble(interests.get(2))) + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+		for(int i = 0; i < pock.size(); i = i + 2){
+			String quer = "INSERT INTO MAKES (toaid, fromaid, when, amount, transactionid, type) values(" + pock.get(i) + ", " + pock.get(i) + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(pock.get(i + 1)) * Double.parseDouble(interests.get(3))) + ", " + interests.get(4) + ", \'Accrue-Interest\')";
+			simpleExec(quer);
+			simpleExec("UPDATE App SET transID = " + interests.get(4) + " + 1");
+		}
+
+		System.out.println(interests.get(4));
 
 		if(interests.size() > 0){
 			// // update student checking 
@@ -364,6 +404,8 @@ public class BankTellerPanel extends JPanel {
 			
 		}
 
+		System.out.println("interests added");
+
 
 
 	}
@@ -371,7 +413,7 @@ public class BankTellerPanel extends JPanel {
 	// HALFWAY FINISHED AND DONE
 	private static void createAcct(){
 		String branch = JOptionPane.showInputDialog("What bank branch is this for?");
-		String balance = JOptionPane.showInputDialog("What is the initial balance of this account \n(please use decimals if not full dollar amount e.g. 10.99)");
+		String balance = JOptionPane.showInputDialog("What is the initial balance of this account \n Pocket accounts must have an initial value greater than $5. \n(please use decimals if not full dollar amount e.g. 10.99)");
 		String typ = JOptionPane.showInputDialog("What type of account is this?\n Type 1 for Student Checking\n Type 2 for Interest Checking\n Type 3 for Savings\n Type 4 for Pocket");
 		ArrayList<String> nextAID = getData("Select A.nextAID from App A where A.ID = 1");
 		String type = typ;
@@ -423,6 +465,7 @@ public class BankTellerPanel extends JPanel {
 							}catch (SQLException e){
 								e.printStackTrace();
 							}
+
 							simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + nextAID.get(0) + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + balance + ", " + p + ", \'Deposit\')");
 							String u = "UPDATE App SET transID = " + p + " + 1";
 							simpleExec(u);
@@ -457,23 +500,6 @@ public class BankTellerPanel extends JPanel {
 						}
 						if(x[0] != ""){
 							simpleExec("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID.get(0) + ", " + x[1] + ")");
-							String q = "SELECT A.today, A.transID FROM App A";
-							int p = 0;
-							java.sql.Date d = new java.sql.Date((long) 1);
-							try{
-								//MainApp.stmt = MainApp.conn.createStatement();
-								ResultSet rs = MainApp.stmt.executeQuery(q);
-								if(rs.next()){
-									d = rs.getDate(1);
-									p = rs.getInt("transID");
-								}
-							}catch (SQLException e){
-								e.printStackTrace();
-							}
-							simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + nextAID.get(0) + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + balance + ", " + p + ", \'Deposit\')");
-							String u = "UPDATE App SET transID = " + p + " + 1";
-							simpleExec(u);
-							System.out.println("Owned_By and Makes entry created");
 						}
 						if(x[0] == ""){
 							i--;
@@ -483,16 +509,43 @@ public class BankTellerPanel extends JPanel {
 				String assoc = JOptionPane.showInputDialog("Type aid for linked account");
 				ArrayList<String> sol = getData("SELECT O.taxID from Owned_By O where O.aid = " + assoc);
 				boolean flag = false;
+				boolean flag2 = false;
 				for(int v = 0; v < sol.size(); v++){
 					for(int z = 0; z < pins.size(); z++){
 						if(sol.get(v).equals(pins.get(z))) flag = true;
 					}
 				}
-				if(flag){
-					simpleExec("INSERT INTO Pocket (aid, associatedid) values(" + nextAID.get(0) + ", " + assoc + ")");
+				ArrayList<String> assBalance = getData("SELECT A.balance from Accounts A where A.aid =" + assoc);
+				if(assBalance.size() > 0){
+					if(flag && Double.parseDouble(assBalance.get(0)) > Double.parseDouble(balance)){
+						simpleExec("INSERT INTO Pocket (aid, associatedid, first) values(" + nextAID.get(0) + ", " + assoc + ", 1)");
+						simpleExec("UPDATE Accounts set balance = balance - " + balance + " where aid = " + assoc);
+						String q = "SELECT A.today, A.transID FROM App A";
+						int p = 0;
+						java.sql.Date d = new java.sql.Date((long) 1);
+						try{
+							//MainApp.stmt = MainApp.conn.createStatement();
+							ResultSet rs = MainApp.stmt.executeQuery(q);
+							if(rs.next()){
+								d = rs.getDate(1);
+								p = rs.getInt("transID");
+							}
+						}catch (SQLException e){
+							e.printStackTrace();
+						}
+						simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + assoc + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(balance) - 5) + ", " + p + ", \'Top-Up\')");
+						String u = "UPDATE App SET transID = " + p + " + 1";
+						simpleExec(u);
+						System.out.println("Owned_By and Makes entry created");
+
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "Invalid linked account ID or not enough money in linked acct to create");
+						simpleExec("DELETE FROM Accounts A WHERE A.aid = " + nextAID.get(0));
+					}
 				}
 				else {
-					JOptionPane.showMessageDialog(null, "Invalid linked account ID");
+					JOptionPane.showMessageDialog(null, "Invalid linked account ID or not enough money in linked acct to create");
 					simpleExec("DELETE FROM Accounts A WHERE A.aid = " + nextAID.get(0));
 				}
 
