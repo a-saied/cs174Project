@@ -417,7 +417,10 @@ public class BankTellerPanel extends JPanel {
 		String branch = JOptionPane.showInputDialog("What bank branch is this for?");
 		String balance = JOptionPane.showInputDialog("What is the initial balance of this account \n Pocket accounts must have an initial value greater than $5. \n(please use decimals if not full dollar amount e.g. 10.99)");
 		String typ = JOptionPane.showInputDialog("What type of account is this?\n Type 1 for Student Checking\n Type 2 for Interest Checking\n Type 3 for Savings\n Type 4 for Pocket");
-		ArrayList<String> nextAID = getData("Select A.nextAID from App A where A.ID = 1");
+		String aid = JOptionPane.showInputDialog("What is the account id?");
+		ArrayList<String> nextAID = new ArrayList<String>();
+		nextAID.add(aid.trim());
+		// ArrayList<String> nextAID = getData("Select A.nextAID from App A where A.ID = 1");
 		String type = typ;
 		JOptionPane.showMessageDialog(null, "AID is " + nextAID.get(0));
 		if(type != null && branch != null){
@@ -451,9 +454,6 @@ public class BankTellerPanel extends JPanel {
 								balance + ", 0, '" + type +"', 0, " + balance + ", '" + x[1] + "', '" + branch + "')");
 							simpleExec("update App set nextaid = nextaid + 1"); 
 							System.out.println("Account created");
-						}
-						if(x[0] != ""){
-							simpleExec("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID.get(0) + ", " + x[1] + ")");
 							String q = "SELECT A.today, A.transID FROM App A";
 							int p = 0;
 							java.sql.Date d = new java.sql.Date((long) 1);
@@ -471,6 +471,9 @@ public class BankTellerPanel extends JPanel {
 							simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + nextAID.get(0) + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + balance + ", " + p + ", \'Deposit\')");
 							String u = "UPDATE App SET transID = " + p + " + 1";
 							simpleExec(u);
+						}
+						if(x[0] != ""){
+							simpleExec("INSERT INTO Owned_By (aid, taxID) Values(" + nextAID.get(0) + ", " + x[1] + ")");
 							System.out.println("Owned_By entry created");
 						}
 						if(x[0] == ""){
