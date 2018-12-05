@@ -101,11 +101,19 @@ public class BankTellerPanel extends JPanel {
 
 		if(aid != null && amt != null){
 			Double am = Double.parseDouble(amt);
-			ArrayList<String>  x = getData("Select A.balance, A.closed from Accounts A where A.aid = " + aid);
+			ArrayList<String>  x = getData("Select A.balance, A.closed from Accounts A where A.type <> 'Pocket' and A.type <> 'Savings' and A.aid = " + aid);
 			if(x.size() > 0){
 				if(Integer.parseInt(x.get(1)) == 0){
 					if(Double.parseDouble(x.get(0)) + am > 0.0){
-						String let = "UPDATE Accounts SET balance = balance + " + am + " WHERE aid = " + aid + "";
+						String let = "";
+						System.out.println("progresso");
+						if(Double.parseDouble(x.get(0)) + am <= 0.01){
+							let = "UPDATE Accounts SET closed = 1, balance = balance + " + am + " WHERE aid = " + aid + "";
+						}
+						else{
+							let = "UPDATE Accounts SET balance = balance + " + am + " WHERE aid = " + aid + "";
+						}
+						// String let = "UPDATE Accounts SET balance = balance + " + am + " WHERE aid = " + aid + "";
 						simpleExec(let);
 						// try{
 						// 	boolean v = MainApp.stmt.execute(x);
@@ -136,8 +144,8 @@ public class BankTellerPanel extends JPanel {
 	    
 	}
 
-	//
-	//
+	//FINISHED
+	//DONE
 	private static void monthlyStatement(){
 	    String masterStatement = "";
 		String customerid = JOptionPane.showInputDialog("Enter Customer TaxID");
@@ -263,7 +271,8 @@ public class BankTellerPanel extends JPanel {
 	//DONE 
 	private static void getDTER(){
 		String master = "";
-		String q = "SELECT C.taxID, C.name, C.address FROM Customers C where C.cid in (SELECT O.cid from Owned_By O, Makes M, where O.aid = M.aid group by O.taxID having SUM(M.amount) > 10000";
+		// and (M.type = \'Deposit\' or M.type = \'Transfer\' or M.type = \'Wire\')
+		String q = "SELECT C.taxID, C.name, C.address from Customers C where C.taxID in (SELECT O.taxID from Owned_By O, Makes M where (M.toaid = O.aid) and (M.type =\'Deposit\' or M.type = \'Wire\' or M.type =\'Transfer\') group by O.taxID having SUM(M.amount) > 10000)";
 		ArrayList<String> x = getData(q);
 		if(x.size() > 0){
 			for(int i = 0; i < x.size(); i++){
@@ -376,14 +385,18 @@ public class BankTellerPanel extends JPanel {
 				String cnt = JOptionPane.showInputDialog("How many owners are on this account?");
 				if(cnt != null){
 					JOptionPane.showMessageDialog(null, "Thank you now please enter the information on these customers. \n Start with the primary owner.");
-				
-					switch(type){
-						case "1" : 
+					System.out.println(type);
+					int numtype = Integer.parseInt(type);
+					switch(numtype){
+						case 1 : 
 							type = "Student-Checking";
-						case "2" :
+							break;
+						case 2 :
 							type = "Interest-Checking";
-						case "3" :
+							break;
+						case 3 :
 							type = "Savings";
+							break;
 					}
 					cnt = cnt.trim();
 					int count = Integer.parseInt(cnt);
@@ -590,7 +603,9 @@ public class BankTellerPanel extends JPanel {
 
 	         //String sql = "SELECT cid, cname, city, discount FROM cs174.Customers";
       		MainApp.stmt = MainApp.conn.createStatement();
+      		System.out.println("this far");
 	         ResultSet rs = MainApp.stmt.executeQuery(query);
+	         System.out.println("this far");
 	         ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
 	         int cols = rsmd.getColumnCount();
 	         //STEP 5: Extract data from result set
