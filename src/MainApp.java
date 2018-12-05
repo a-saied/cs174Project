@@ -192,7 +192,8 @@ public class MainApp {
 					addInterest();
 					String q3 = "DELETE FROM Makes";
 					int h = stmt.executeUpdate(q3);
-					System.out.println(q3);
+					String q4 = "UPDATE Accounts SET interestAdded = 0";
+					int n = stmt.executeUpdate(q4);
 				}
 
 
