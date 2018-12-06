@@ -17,9 +17,6 @@ public class MainApp {
 	static Connection conn = null;
     static Statement stmt = null;
 
-	static int transactionID = 0;
-	static int aid = 0; 
-
 	static JPanel login = new JPanel();
 	static JPanel scene = new JPanel();
 	static JPanel atmPanel = new ATMPanel();
@@ -28,6 +25,8 @@ public class MainApp {
 	static JFrame window; 
 
  	static int atmTaxID;
+
+ 	static JFrame f = new JFrame();
 
 	public static void main(String[] args){
 
@@ -125,7 +124,7 @@ public class MainApp {
 				window.validate();
 			}
 			else {
-				System.out.println("That PIN does not exist.");
+				JOptionPane.showMessageDialog(f, "That PIN does not exist.");
 				window.setContentPane(scene);
 				window.invalidate();
 				window.validate();
@@ -209,7 +208,7 @@ public class MainApp {
 	} 
 
 	public static boolean verifyPin(String pinToCheck) {
-		String query = "SELECT taxID FROM Customers C WHERE C.pin=" + pinToCheck;
+		String query = "SELECT taxID FROM Customers C WHERE C.pin=" + Integer.parseInt(pinToCheck)*2;
 		try  {
 			ResultSet rs = MainApp.stmt.executeQuery(query);
 			while (rs.next()) {
@@ -219,6 +218,5 @@ public class MainApp {
 		} catch(SQLException se) { se.printStackTrace(); }
 		return false;
 	}
-
 
 }
