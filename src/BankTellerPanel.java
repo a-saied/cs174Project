@@ -12,6 +12,8 @@ public class BankTellerPanel extends JPanel {
 	static Connection conn = null;
     static Statement stmt = null;
 
+    ATMFunctions atmf = new ATMFunctions();
+
 	public BankTellerPanel() {
 		this.setLayout( new GridLayout(0,1, 0, 10));
 		JLabel l3 = new JLabel("Welcome, Bank Teller! What would you like to do?\n");
@@ -179,12 +181,13 @@ public class BankTellerPanel extends JPanel {
 				}
 
 				masterStatement += "\n Transactions list \n";
-				transaction_query = "SELECT M.toaid, M.fromaid, M.when, M.amount FROM Makes M where M.toaid = " + customer_accts_aids.get(i) + " or M.fromaid = " + customer_accts_aids.get(i);
+				transaction_query = "SELECT M.toaid, M.fromaid, M.when, M.amount, M.type FROM Makes M where M.toaid = " + customer_accts_aids.get(i) + " or M.fromaid = " + customer_accts_aids.get(i);
 				trans = getData(transaction_query);
 				System.out.println("got transactions");
+
 				for(int j = 0; j < trans.size(); j++){
 					masterStatement += trans.get(j);
-					if(j % 4 == 3){
+					if(j % 5 == 4){
 						masterStatement += "\n";
 					}else { 
 						masterStatement += ", "; 
@@ -327,6 +330,7 @@ public class BankTellerPanel extends JPanel {
 	//FINISHED
 	//DONE
 	private static void addInterest(){
+
 		//get interest rates 
 		String q = "SELECT A.student, A.interest, A.savings, A.pocket, A.transID from App A";
 		ArrayList<String> interests = getData(q);
@@ -407,9 +411,6 @@ public class BankTellerPanel extends JPanel {
 		}
 
 		System.out.println("interests added");
-
-
-
 	}
 
 	// HALFWAY FINISHED AND DONE
