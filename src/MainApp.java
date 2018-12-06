@@ -199,7 +199,7 @@ public class MainApp {
 					int n = stmt.executeUpdate(q4);
 					String q5 = "UPDATE Pocket Set first = 0";
 					int z2 = stmt.executeUpdate(q5);
-					deleteClosed();
+					//deleteClosed();
 				}
 
 
