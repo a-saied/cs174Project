@@ -32,6 +32,7 @@ public class ATMPanel extends JPanel {
 			MainApp.window.validate();
 		});
 
+
 		this.add(l2);
 		this.add(b1);
 		this.add(b2);
@@ -42,6 +43,7 @@ public class ATMPanel extends JPanel {
 		this.add(b7);
 		this.add(b8);
 		this.add(b9);
+		this.add(b10);
 
 		//Desposit
 		b1.addActionListener(e -> {

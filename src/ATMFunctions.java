@@ -41,6 +41,16 @@ public class ATMFunctions {
 					JOptionPane.showMessageDialog(f, "You cannot top-up from a closed account.");  
 					return;
 				}
+				String q = "SELECT first FROM Pocket P WHERE P.aid=" + linkedAccountID;
+				try {
+					ResultSet rss = MainApp.stmt.executeQuery(q);
+					while (rss.next()) {
+						if (rss.getInt(1) == 0) {
+							amount -= 5;
+						}
+					}
+				} catch(SQLException se) { se.printStackTrace(); }
+
 				if (hasEnoughMoney(amount, linkedAccountID)) {
 					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + amount + " WHERE A.aid=" + pocketAccountID;
 					String subQuery = "UPDATE Accounts A SET A.balance = A.balance-" + amount + " WHERE A.aid=(SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID + ")";
@@ -331,7 +341,7 @@ public class ATMFunctions {
 			ResultSet rs = MainApp.stmt.executeQuery(checkQuery);
 			if (rs.next()) {
 				if ((rs.getInt("taxid")) == MainApp.atmTaxID) {
-					String updateQuery = "UPDATE Customers SET pin=" + Integer.parseInt(newPin*2) + " WHERE taxid=" + MainApp.atmTaxID;
+					String updateQuery = "UPDATE Customers SET pin=" + Integer.parseInt(newPin)*2 + " WHERE taxid=" + MainApp.atmTaxID;
 					int rs2 = MainApp.stmt.executeUpdate(updateQuery);
 					System.out.println("Updated: " + rs2);
 				}
