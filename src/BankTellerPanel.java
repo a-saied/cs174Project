@@ -127,7 +127,7 @@ public class BankTellerPanel extends JPanel {
 						// p = "100.00";
 						// String v = "INSERT INTO Accounts values(1, 120, 0, 'Savings', 0, 0, 1234)";
 						// simpleExec(v);
-						String z = "INSERT INTO Makes(toaid, fromaid, when, amount, transactionid, type) values( " + aid + ", " + aid + ", TO_DATE('" + d + "', 'YYYY-MM-DD'), " + am + ", " + p + ", \'Check-Transaction\')";
+						String z = "INSERT INTO Makes(toaid, fromaid, when, amount, transactionid, type) values( " + aid + ", null, TO_DATE('" + d + "', 'YYYY-MM-DD'), " + am + ", " + p + ", \'Check-Transaction\')";
 						simpleExec(z);
 						JOptionPane.showMessageDialog(null, "Transaction completed");
 						String u = "UPDATE App SET transID = " + p + " + 1";
@@ -193,9 +193,11 @@ public class BankTellerPanel extends JPanel {
 
 
 				transaction_query2 = "SELECT A.balance FROM Accounts A WHERE A.aid = " + customer_accts_aids.get(i);
-				transaction_query3 = "SELECT SUM(M.amount) FROM Makes M WHERE M.toaid = " + customer_accts_aids.get(i) + " or M.fromaid = " + customer_accts_aids.get(i);
+				transaction_query3 = "SELECT SUM(M.amount) FROM Makes M WHERE M.toaid = " + customer_accts_aids.get(i); 
+				String q3 = "SELECT SUM(M.amount) FROM Makes M WHERE M.fromaid = " + customer_accts_aids.get(i);
 				double z = 0;
 				double w = 0;
+				double w2 = 0;
 				boolean changed1 = false;
 				boolean changed2 = false;
 				try{
@@ -217,10 +219,19 @@ public class BankTellerPanel extends JPanel {
 				}catch(SQLException e){
 					e.printStackTrace();
 				}
+				try{
+					ResultSet rs = MainApp.stmt.executeQuery(q3);
+					if(rs.next()){
+						w2 = rs.getDouble(1);
+						changed1 = true;
+					}
+				}catch(SQLException e){
+					e.printStackTrace();
+				}
 				// System.out.println(trans.get(0));
 				// System.out.println(trans.get(1));
 				if(changed1 && changed2){ 
-					double init = z - w;
+					double init = z - w + w2;
 					masterStatement += "Initial Balance: " + init + "\n";
 					masterStatement += "Final Balance: " + z + "\n";
 				}
@@ -375,28 +386,28 @@ public class BankTellerPanel extends JPanel {
 		if(interests.size() > 0){
 			// // update student checking 
 			// * " + interests.get(0) + ",
-			String q2 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(0) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Student-Checking'";
+			String q2 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(0) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Student-Checking\'";
 			try{
 				boolean r = MainApp.stmt.execute(q2);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			String q3 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(1) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Interest-Checking'";
+			String q3 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(1) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Interest-Checking\'";
 			try{
 				boolean r = MainApp.stmt.execute(q3);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			String q4 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(2) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Savings'";
+			String q4 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(2) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Savings\'";
 			try{
 				boolean r = MainApp.stmt.execute(q4);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			String q5 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(3) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Pocket'";
+			String q5 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(3) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Pocket\'";
 			try{
 				boolean r = MainApp.stmt.execute(q5);
 			}
@@ -468,7 +479,7 @@ public class BankTellerPanel extends JPanel {
 								e.printStackTrace();
 							}
 
-							simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + nextAID.get(0) + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + balance + ", " + p + ", \'Deposit\')");
+							simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", null, " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + balance + ", " + p + ", \'Deposit\')");
 							String u = "UPDATE App SET transID = " + p + " + 1";
 							simpleExec(u);
 						}
@@ -499,7 +510,7 @@ public class BankTellerPanel extends JPanel {
 						pins.add(x[1]);
 						if(i == 0 && x[0] != ""){
 							simpleExec("INSERT INTO Accounts (aid, balance, closed, type, interestAdded, avgBalance, owner) Values(" + nextAID.get(0) + ", " +
-								balance + ", 0, \'Pocket\', 0, " + balance + ", " + x[1] + ")");
+								(Double.parseDouble(balance) - 5) + ", 0, \'Pocket\', 0, " + (Double.parseDouble(balance) - 5) + ", " + x[1] + ")");
 							simpleExec("update App set nextaid = nextaid + 1");
 							System.out.println("Account created");
 						}
@@ -538,7 +549,7 @@ public class BankTellerPanel extends JPanel {
 						}catch (SQLException e){
 							e.printStackTrace();
 						}
-						simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + assoc + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + (Double.parseDouble(balance) - 5) + ", " + p + ", \'Top-Up\')");
+						simpleExec("INSERT INTO Makes (toaid, fromaid, when, amount, transactionid, type) values(" + nextAID.get(0) + ", " + assoc + ", " + "TO_DATE('" + d + "', 'YYYY-MM-DD'), " + balance + ", " + p + ", \'Top-Up\')");
 						String u = "UPDATE App SET transID = " + p + " + 1";
 						simpleExec(u);
 						System.out.println("Owned_By and Makes entry created");

@@ -192,7 +192,7 @@ public class MainApp {
 					addInterest();
 					String q3 = "DELETE FROM Makes";
 					int h = stmt.executeUpdate(q3);
-					String q4 = "UPDATE Accounts SET interestAdded = 0";
+					String q4 = "UPDATE Accounts SET interestAdded = 0, avgbalance = balance";
 					int n = stmt.executeUpdate(q4);
 					String q5 = "UPDATE Pocket Set first = 0";
 					int z2 = stmt.executeUpdate(q5);
@@ -348,28 +348,28 @@ public class MainApp {
 		if(interests.size() > 0){
 			// // update student checking 
 			// * " + interests.get(0) + ",
-			String q2 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(0) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Student-Checking'";
+			String q2 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(0) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Student-Checking\'";
 			try{
 				boolean r = MainApp.stmt.execute(q2);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			String q3 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(1) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Interest-Checking'";
+			String q3 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(1) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Interest-Checking\'";
 			try{
 				boolean r = MainApp.stmt.execute(q3);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			String q4 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(2) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Savings'";
+			String q4 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(2) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Savings\'";
 			try{
 				boolean r = MainApp.stmt.execute(q4);
 			}
 			catch(SQLException se){
 				se.printStackTrace();
 			}
-			String q5 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(3) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = 'Pocket'";
+			String q5 = "UPDATE Accounts SET balance = balance + avgBalance * " + interests.get(3) + ", interestAdded = 1 WHERE closed = 0 and interestAdded = 0 and type = \'Pocket\'";
 			try{
 				boolean r = MainApp.stmt.execute(q5);
 			}
@@ -409,39 +409,24 @@ public class MainApp {
 
 	private static void simpleExec(String x){
 		try{
-			int res = MainApp.stmt.executeUpdate(x);
+			int res = stmt.executeUpdate(x);
 			//System.out.println("Transactions deleted");
 
 		}
-		catch(SQLIntegrityConstraintViolationException s){
-			s.printStackTrace();
-			try{
-	            if(MainApp.stmt!=null)
-	               MainApp.conn.close();
-	         }catch(SQLException se){
-	         }// do nothing
-	         try{
-	            if(MainApp.conn!=null)
-	               MainApp.conn.close();
-	         }catch(SQLException se){
-	            se.printStackTrace();
-	         }//end finally try
-			System.exit(0);
-		}
 		catch(SQLException s){
 			s.printStackTrace();
-			try{
-	            if(MainApp.stmt!=null)
-	               MainApp.conn.close();
-	         }catch(SQLException se){
-	         }// do nothing
-	         try{
-	            if(MainApp.conn!=null)
-	               MainApp.conn.close();
-	         }catch(SQLException se){
-	            se.printStackTrace();
-	         }//end finally try
-			System.exit(0);
+			// try{
+	  //           if(MainApp.stmt!=null)
+	  //              MainApp.conn.close();
+	  //        }catch(SQLException se){
+	  //        }// do nothing
+	  //        try{
+	  //           if(MainApp.conn!=null)
+	  //              MainApp.conn.close();
+	  //        }catch(SQLException se){
+	  //           se.printStackTrace();
+	  //        }//end finally try
+			// System.exit(0);
 
 		}
 		// finally{
