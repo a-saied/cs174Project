@@ -14,6 +14,9 @@ public class ATMFunctions {
 			if(getAccountType(accountID).equals("Pocket")) {
 				JOptionPane.showMessageDialog(f, "You cannot deposit into a pocket account.");  
 			}
+			if (isClosed(accountID)) {
+				JOptionPane.showMessageDialog(f, "You cannot deposit into a closed account.");  
+			}
 			else {
 				String updateQuery = "UPDATE Accounts SET balance = balance+" + amount + " WHERE aid=" + accountID;
 				try {
@@ -34,6 +37,10 @@ public class ATMFunctions {
 		if (checkAccountAccess(pocketAccountID)) {
 			if (getAccountType(pocketAccountID).equals("Pocket")) {
 				String linkedAccountID = Integer.toString(getLinkedAccountID(pocketAccountID));
+				if (isClosed(linkedAccountID)) {
+					JOptionPane.showMessageDialog(f, "You cannot top-up from a closed account.");  
+					return;
+				}
 				if (hasEnoughMoney(amount, linkedAccountID)) {
 					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + amount + " WHERE A.aid=" + pocketAccountID;
 					String subQuery = "UPDATE Accounts A SET A.balance = A.balance-" + amount + " WHERE A.aid=(SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID + ")";
@@ -50,6 +57,9 @@ public class ATMFunctions {
 						ResultSet rs3 = MainApp.stmt.executeQuery(subQuery);
 						//addTransaction("Top-Up", amount*-1.0, linkedAccountID);
 						addTransactionDouble("Top-Up", amount, linkedAccountID, pocketAccountID);
+						if (getBalance(linkedAccountID) <= 0.01) {
+							markAsClosed(linkedAccountID);
+						}
 					} catch(SQLException se)  { se.printStackTrace(); }
 				}
 				else {
@@ -67,6 +77,10 @@ public class ATMFunctions {
 
 	//DONE
 	public void withdraw(double amount, String accountID) {
+		if (isClosed(accountID)) {
+			JOptionPane.showMessageDialog(f, "You cannot withdraw from a closed account.");  
+			return;
+		}
 		if (checkAccountAccess(accountID)) {
 			if (getAccountType(accountID).equals("Pocket")){
 				JOptionPane.showMessageDialog(f, "Cannot withdraw from a pocket account.");
@@ -77,7 +91,11 @@ public class ATMFunctions {
 					try {
 						int rs = MainApp.stmt.executeUpdate(query);
 						System.out.println("Updated: " + rs);
+						if (getBalance(accountID) <= 0.01) {
+							markAsClosed(accountID);
+						}
 						addTransactionSingle("Withdraw", amount, accountID);
+
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
 				else {
@@ -117,6 +135,10 @@ public class ATMFunctions {
 	}
 
 	public void transfer(double amount, String fromAccountID, String toAccountID) {
+		if (isClosed(fromAccountID) || isClosed(toAccountID)) {
+			JOptionPane.showMessageDialog(f, "You cannot transfer from/to a closed account.");  
+			return;
+		}
 		if (checkAccountAccess(fromAccountID)) {
 			if (getAccountType(fromAccountID).equals("Pocket") || getAccountType(toAccountID).equals("Pocket")){
 				JOptionPane.showMessageDialog(f, "You cannot transfer to/from a pocket account.");
@@ -142,7 +164,9 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
-						//addTransaction("Transfer", amount*-1.0, fromAccountID);
+						if (getBalance(fromAccountID) <= 0.01) {
+							markAsClosed(fromAccountID);
+						}
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to account
@@ -150,7 +174,6 @@ public class ATMFunctions {
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
-						//addTransaction("Transfer", amount, toAccountID);
 						addTransactionDouble("Transfer", amount, fromAccountID, toAccountID);
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
@@ -169,6 +192,18 @@ public class ATMFunctions {
 		if (checkAccountAccess(pocketAccountID)) {
 			if (getAccountType(pocketAccountID).equals("Pocket")){
 				if (hasEnoughMoney(amount, pocketAccountID)) {
+					int associatedID = -1;
+					String assQuery = "SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID;
+					try {
+						ResultSet rs3 = MainApp.stmt.executeQuery(assQuery);
+						while (rs3.next()) {
+							associatedID = rs3.getInt("associatedID");
+						}					
+					} catch(SQLException se) { se.printStackTrace(); }
+					if (isClosed(Integer.toString(associatedID))) {
+						JOptionPane.showMessageDialog(f, "You cannot collect from a closed account.");
+						return;
+					}
 					//subtract from pocket account
 					String subQuery = "UPDATE Accounts A SET A.balance = A.balance-" + amount + " WHERE A.aid=" + pocketAccountID;
 					try {
@@ -179,16 +214,9 @@ public class ATMFunctions {
 
 					//add to linked account
 					String addQuery = "UPDATE Accounts A SET A.balance = A.balance+" + (amount - (amount*.03)) + "WHERE A.aid = (SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID + ")";
-					String assQuery = "SELECT associatedID FROM Pocket P WHERE aid=" + pocketAccountID;
-					int associatedID = -1;
 					try {
 						int rs2 = MainApp.stmt.executeUpdate(addQuery);
 						System.out.println("Updated2: " + rs2);
-						ResultSet rs3 = MainApp.stmt.executeQuery(assQuery);
-						while (rs3.next()) {
-							associatedID = rs3.getInt("associatedID");
-						}
-						//addTransaction("Collect", amount, Integer.toString(associatedID));
 						addTransactionDouble("Collect", amount, pocketAccountID, Integer.toString(associatedID));
 					} catch(SQLException se) { se.printStackTrace(); }
 				}
@@ -207,6 +235,10 @@ public class ATMFunctions {
 
 	//DONE
 	public void wire(double amount, String fromAccountID, String toAccountID) {
+		if (isClosed(fromAccountID) || isClosed(toAccountID)) {
+			JOptionPane.showMessageDialog(f, "You cannot wire to/from a closed account.");
+			return;
+		}
 		if (checkAccountAccess(fromAccountID) && checkAccountAccess(toAccountID)) {
 			if (!getAccountType(fromAccountID).equals("Pocket") && !getAccountType(toAccountID).equals("Pocket")) {
 				//subtract from pocket account
@@ -215,7 +247,9 @@ public class ATMFunctions {
 					try {
 						int rs1 = MainApp.stmt.executeUpdate(subQuery);
 						System.out.println("Updated1: " + rs1);
-						//addTransaction("Wire", amount*-1.0, fromAccountID);
+						if (getBalance(fromAccountID) <= 0.01) {
+							markAsClosed(fromAccountID);
+						}
 					} catch(SQLException se) { se.printStackTrace(); }
 
 					//add to other account
@@ -242,6 +276,10 @@ public class ATMFunctions {
 
 	//DONE
 	public void payFriend(double amount, String fromPocketID, String toPocketID) {
+		if (isClosed(Integer.toString(getLinkedAccountID(fromPocketID))) || isClosed(Integer.toString(getLinkedAccountID(fromPocketID)))) {
+			JOptionPane.showMessageDialog(f, "You cannot pay a friend from/to a closed account.");
+			return;
+		}
 		if (checkAccountAccess(fromPocketID)) {
 			String checkQuery = "SELECT COUNT(aid) FROM Pocket P WHERE P.aid=" + toPocketID;
 			try {
@@ -288,12 +326,12 @@ public class ATMFunctions {
 
 	public void setPin(String oldPin, String newPin) {
 		//get tax id from old pin
-		String checkQuery = "SELECT taxID FROM Customers C WHERE C.pin=" + oldPin;
+		String checkQuery = "SELECT taxID FROM Customers C WHERE C.pin=" + Integer.parseInt(oldPin)*2;
 		try {
 			ResultSet rs = MainApp.stmt.executeQuery(checkQuery);
 			if (rs.next()) {
 				if ((rs.getInt("taxid")) == MainApp.atmTaxID) {
-					String updateQuery = "UPDATE Customers SET pin=" + newPin + " WHERE taxid=" + MainApp.atmTaxID;
+					String updateQuery = "UPDATE Customers SET pin=" + Integer.parseInt(newPin*2) + " WHERE taxid=" + MainApp.atmTaxID;
 					int rs2 = MainApp.stmt.executeUpdate(updateQuery);
 					System.out.println("Updated: " + rs2);
 				}
@@ -354,6 +392,38 @@ public class ATMFunctions {
 			ResultSet rs = MainApp.stmt.executeQuery(query);
 			while (rs.next()) {
 				return rs.getInt(1);
+			}
+		} catch(SQLException se) { se.printStackTrace(); }
+		return -1;
+	}
+
+	public boolean isClosed(String accountID) {
+		String query = "SELECT closed FROM Accounts A WHERE A.aid=" + accountID;
+		try  {
+			ResultSet rs = MainApp.stmt.executeQuery(query);
+			while (rs.next()) {
+				if (rs.getInt(1) == 1) {
+					return true;
+				}
+			}
+		} catch(SQLException se) { se.printStackTrace(); }
+		return false;
+	}
+
+	public void markAsClosed(String accountID) {
+		String query = "UPDATED Accounts SET closed=1 WHERE A.aid=" + accountID;
+		try  {
+			int rs = MainApp.stmt.executeUpdate(query);
+			System.out.println("Marked as closed: " + rs);
+		} catch(SQLException se) { se.printStackTrace(); }
+	}
+
+	public double getBalance(String accountID) {
+		String query = "SELECT balance FROM Accounts A WHERE A.aid=" + accountID;
+		try  {
+			ResultSet rs = MainApp.stmt.executeQuery(query);
+			while (rs.next()) {
+				return rs.getDouble(1);
 			}
 		} catch(SQLException se) { se.printStackTrace(); }
 		return -1;
