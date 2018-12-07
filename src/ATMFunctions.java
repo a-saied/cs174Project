@@ -249,7 +249,7 @@ public class ATMFunctions {
 			JOptionPane.showMessageDialog(f, "You cannot wire to/from a closed account.");
 			return;
 		}
-		if (checkAccountAccess(fromAccountID) && checkAccountAccess(toAccountID)) {
+		if (checkAccountAccess(fromAccountID)) {
 			if (!getAccountType(fromAccountID).equals("Pocket") && !getAccountType(toAccountID).equals("Pocket")) {
 				//subtract from pocket account
 				if (hasEnoughMoney(amount, fromAccountID)) {
@@ -474,7 +474,7 @@ public class ATMFunctions {
 
 	public void addTransactionSingle(String type, double amount, String accountID) {
 		try {
-			String query = "INSERT INTO Makes (toAid, amount, transactionid, when, type) VALUES (" + accountID + ", " + amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-dd-mm')" + ", '" + type + "')";
+			String query = "INSERT INTO Makes (toAid, amount, transactionid, when, type) VALUES (" + accountID + ", " + amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-mm-dd')" + ", '" + type + "')";
 			int rs = MainApp.stmt.executeUpdate(query);
 			System.out.println("added transaction: " + rs);
 			updateTransID();
@@ -483,7 +483,7 @@ public class ATMFunctions {
 
 	public void addTransactionDouble(String type, double amount, String fromAccountID, String toAccountID) {
 		try {
-			String query = "INSERT INTO Makes (toAid, fromAid, amount, transactionid, when, type) VALUES (" + toAccountID + ", " + fromAccountID + ", " +  amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-dd-mm')" + ", '" + type + "')";
+			String query = "INSERT INTO Makes (toAid, fromAid, amount, transactionid, when, type) VALUES (" + toAccountID + ", " + fromAccountID + ", " +  amount + ", " + getTransactionID() + ", TO_DATE('" + getDate() + "', 'yyyy-mm-dd')" + ", '" + type + "')";
 			int rs = MainApp.stmt.executeUpdate(query);
 			System.out.println("added transaction: " + rs);
 			updateTransID();

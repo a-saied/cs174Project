@@ -184,7 +184,7 @@ public class BankTellerPanel extends JPanel {
 				System.out.println("got transactions");
 				for(int j = 0; j < trans.size(); j++){
 					masterStatement += trans.get(j);
-					if(j % 4 == 3){
+					if(j % 5 == 4){
 						masterStatement += "\n";
 					}else { 
 						masterStatement += ", "; 
@@ -458,6 +458,7 @@ public class BankTellerPanel extends JPanel {
 					}
 					cnt = cnt.trim();
 					int count = Integer.parseInt(cnt);
+					System.out.println("count: " + count);
 					for(int i = 0; i < count; i++){
 						String[] x = inputCustomerData(nextAID.get(0));
 						if(i == 0 && x[0] != ""){
@@ -620,6 +621,7 @@ public class BankTellerPanel extends JPanel {
 		pin_num = pin_num * 2;
 		ArrayList<String> val = getData("SELECT COUNT(*) FROM Customers C WHERE C.PIN = '" + pin_num + "'");
 		if(Integer.parseInt(val.get(0)) <  1 || pin.length() != 4){
+			System.out.println("NEW");
 			String name = JOptionPane.showInputDialog("NEW CUSTOMER! Please type the Customer's name:");
 			if(name != null){
 				String addy = JOptionPane.showInputDialog("Enter address: ");
@@ -634,6 +636,7 @@ public class BankTellerPanel extends JPanel {
 			}
 		}
 		else if(pin.length() == 4 && Integer.parseInt(val.get(0)) >= 1){
+			System.out.println("OLD");
 			String tazID = "";
 			try{
 				String z = "SELECT C.pin, C.taxID from Customers C where C.pin = '" + pin_num + "'";
