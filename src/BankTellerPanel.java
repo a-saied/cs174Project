@@ -179,7 +179,7 @@ public class BankTellerPanel extends JPanel {
 				}
 
 				masterStatement += "\n Transactions list \n";
-				transaction_query = "SELECT M.toaid, M.fromaid, M.when, M.amount FROM Makes M where M.toaid = " + customer_accts_aids.get(i) + " or M.fromaid = " + customer_accts_aids.get(i);
+				transaction_query = "SELECT M.toaid, M.fromaid, M.when, M.amount, M.type FROM Makes M where M.toaid = " + customer_accts_aids.get(i) + " or M.fromaid = " + customer_accts_aids.get(i);
 				trans = getData(transaction_query);
 				System.out.println("got transactions");
 				for(int j = 0; j < trans.size(); j++){
